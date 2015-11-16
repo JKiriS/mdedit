@@ -195,11 +195,14 @@
 	document.getElementById("title").addEventListener("input", function(event){
 		var title = document.getElementById("title").value;
 		document.title = title;
+		CHANGED = true;
 	});
 
 	$("#title").blur(function(){
 		$(".title").toggle();
 	});
+
+	CHANGED = false;
 
 	$(document).ready(function(){
 
@@ -212,6 +215,7 @@
 
 	document.getElementById("Content").addEventListener("input", function(event){
 		render();
+		CHANGED = true;
 	});
 
   </script>
@@ -296,6 +300,9 @@
     	var title = document.title;
     	if(title.trim() == ""){
     		alert("标题为空");
+    		return ;
+    	}
+    	if(! CHANGED){
     		return ;
     	}
     	
