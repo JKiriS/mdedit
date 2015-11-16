@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import datetime
 import json
 import traceback
@@ -125,6 +126,9 @@ class Application(tornado.web.Application):
 
 
 define("port", default=9000, help="run on the given port", type=int)
+
+temp = sys.stdout
+sys.stdout = open('/home/jkiris/mdedit.log','w')
 
 tornado.options.parse_command_line()
 
