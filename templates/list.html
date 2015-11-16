@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>文档列表</title>
+
+  <script src="/static/js/jquery-1.11.1.min.js"></script>
+
+  <style type="text/css">
+  	body {
+  		height: 100%;
+  		width: 100%;
+  		margin: 0px;
+  		padding: 0px;
+  		background-color: #F9F9F5;
+  	}
+
+  	div.main {
+  		height: inherit;
+  		margin: 0px;
+  		padding: 0px;
+  		width: 100%;
+  	}
+
+  </style>
+</head>
+<body>
+  <div class="main">
+	  <ul>
+	  	{% for article in articles %}
+	  	<li>
+	  		<a href="/a/{{ str(article['_id']) }}">{{ article['title'] }}</a>
+	  	</li>
+	  	{% end %}
+	  </ul>
+  </div>
+
+  <script type="text/javascript">
+
+  	function getCookie(name) {
+        var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+        return r ? r[1] : undefined;
+    };
+
+    $.post = function(url, args, callback, dataType) {
+    	if(!dataType)
+    		dataType = "json";
+
+    	if(typeof args == "object")
+        	args._xsrf = getCookie("_xsrf");
+
+        $.ajax({
+        	url: url, 
+        	data: $.param(args), 
+        	dataType: dataType, 
+        	type: "POST",
+            success: function(response) {
+            	callback(response);
+        	}
+        });
+    };
+
+  </script>
+  <script type="text/javascript">
+
+    $(document).ready(function(){
+
+		$("body").outerHeight( $(window).height() );
+
+	});
+
+  </script>
+
+</body>
+</html>
