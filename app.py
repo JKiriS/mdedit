@@ -124,7 +124,7 @@ class Application(tornado.web.Application):
         self.mongo.authenticate('JKiriS', '910813gyb')
 
 
-define("port", default=8000, help="run on the given port", type=int)
+define("port", default=9000, help="run on the given port", type=int)
 
 tornado.options.parse_command_line()
 
