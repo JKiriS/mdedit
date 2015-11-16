@@ -13,6 +13,8 @@ from tornado.options import define, options
 import pymongo
 from bson.objectid import ObjectId
 
+cfg = json.load(open('self.cfg', 'r'))
+
 
 class BaseHandler(tornado.web.RequestHandler):
     @property
@@ -122,7 +124,7 @@ class Application(tornado.web.Application):
 
         client = pymongo.MongoClient('115.156.196.9', 27017)
         self.mongo = client['md']
-        self.mongo.authenticate('JKiriS', '910813gyb')
+        self.mongo.authenticate(cfg['user'], cfg['pwd'])
 
 
 define("port", default=9000, help="run on the given port", type=int)

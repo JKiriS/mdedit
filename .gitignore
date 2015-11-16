@@ -22,3 +22,5 @@ var/
 design/
 
 MathJax/
+
+self.cfg
