@@ -127,8 +127,8 @@ class Application(tornado.web.Application):
 
 define("port", default=9000, help="run on the given port", type=int)
 
-temp = sys.stdout
-sys.stdout = open('/home/jkiris/mdedit.log','w')
+# temp = sys.stdout
+# sys.stdout = open('/home/jkiris/mdedit/mdedit.log','w')
 
 tornado.options.parse_command_line()
 
