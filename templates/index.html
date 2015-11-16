@@ -307,6 +307,7 @@
     	}
     	
 	    $.post("", {title: title, content: content}, function(result){
+	    	CHANGED = false;
 	        if(result.redirect)
 	        	window.location.href = result.redirect;
 	    });
