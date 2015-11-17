@@ -122,12 +122,12 @@ class Application(tornado.web.Application):
 
         super(Application, self).__init__(handlers, **settings)
 
-        client = pymongo.MongoClient('115.156.196.9', 27017)
+        client = pymongo.MongoClient(cfg['dbip'], cfg['dbport'])
         self.mongo = client['md']
         self.mongo.authenticate(cfg['user'], cfg['pwd'])
 
 
-define("port", default=9000, help="run on the given port", type=int)
+define("port", default=cfg['port'], help="run on the given port", type=int)
 
 # temp = sys.stdout
 # sys.stdout = open('/home/jkiris/mdedit/mdedit.log','w')
