@@ -8,12 +8,12 @@
   <script src="/static/js/jquery-1.11.1.min.js"></script>
   <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
-		showProcessingMessages: false,
-		tex2jax: { 
-			inlineMath: [ ['$','$'],['\\(','\\)'] ],
-			displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-			processEscapes: true
-		},
+  		showProcessingMessages: false,
+  		tex2jax: { 
+  			inlineMath: [ ['$','$'],['\\(','\\)'] ],
+  			displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+  			processEscapes: true
+  		},
     });
   </script>
   <script type="text/javascript" src="/static/js/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
@@ -96,7 +96,7 @@
   	.alert {
   		position: fixed;
   		left: 20px;
-  		height: 20px;
+  		height: 22px;
   		font-size: 18px;
   		background-color: #3A9BD9;
   		color: white;
@@ -444,7 +444,7 @@
   }
 
   document.getElementById('Content').addEventListener("scroll", function(event){
-  		console.log(getTopRow());
+  		// console.log(getTopRow());
   });
 
   </script>
