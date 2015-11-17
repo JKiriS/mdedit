@@ -113,20 +113,23 @@
 <body>
   <div class="main">
 
-  	  <div class="title">
+  	<div class="title">
   		<input type="text" name="title" value="{{ article['title'] }}" id="title">
-  	  </div>
+  	</div>
 
 	  <div class="input">
 	  	{% module xsrf_form_html() %}
-		<textarea id="Content">{{ article['content'] }}</textarea>
+		  <textarea id="Content">{{ article['content'] }}</textarea>
 	  </div>
 		  
 	  <div class="output">
-
-		<div id="MathPreview" style=""></div>
-		  	
+		  <div id="MathPreview" style=""></div>
 	  </div>
+    
+  </div>
+
+  <div class="alert empty">
+    
   </div>
 
   <script>
