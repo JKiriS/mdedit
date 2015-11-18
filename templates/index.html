@@ -322,7 +322,7 @@
     	var content = document.getElementById("Content").value;
     	var title = document.title;
     	if(title.trim() == ""){
-    		alert("标题为空");
+    		info("错误：标题为空");
     		return ;
     	}
     	if(! CHANGED){
@@ -330,10 +330,14 @@
     	}
     	
 	    $.post("", {title: title, content: content}, function(result){
-	    	CHANGED = false;
-	    	alert("保存成功");
-	        if(result.redirect)
-	        	window.location.href = result.redirect;
+	    	if(result.status == "ok"){
+          CHANGED = false;
+          info("保存成功");
+          if(result.redirect)
+            window.location.href = result.redirect;
+        } else {
+          info("错误：" + result.error);
+        }
 	    });
     }
 
