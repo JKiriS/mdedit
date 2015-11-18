@@ -4,6 +4,17 @@
  * https://github.com/chjj/marked
  */
 
+ String.prototype.count = function(substr){
+    if(substr){
+      var reg = new RegExp(substr, "g");
+      var matches = this.match(reg);
+      if(! matches)
+        return 0;
+      return matches.length;
+    }
+    return this.length;
+  }
+
 ;(function() {
 
 /**
@@ -143,6 +154,8 @@ Lexer.prototype.lex = function(src) {
     .replace(/\u00a0/g, ' ')
     .replace(/\u2424/g, '\n');
 
+  this.line = 0;
+
   return this.token(src, true);
 };
 
@@ -168,9 +181,11 @@ Lexer.prototype.token = function(src, top, bq) {
       src = src.substring(cap[0].length);
       if (cap[0].length > 1) {
         this.tokens.push({
-          type: 'space'
+          type: 'space',
+          line: this.line
         });
       }
+      this.line += cap[0].count("\n");
     }
 
     // extension math, must be below newline!!!
@@ -178,8 +193,10 @@ Lexer.prototype.token = function(src, top, bq) {
       src = src.substring(cap[0].length);
       this.tokens.push({
         type: 'math',
-        text: cap[1]
+        text: cap[1],
+        line: this.line
       });
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -191,8 +208,10 @@ Lexer.prototype.token = function(src, top, bq) {
         type: 'code',
         text: !this.options.pedantic
           ? cap.replace(/\n+$/, '')
-          : cap
+          : cap,
+        line: this.line
       });
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -202,8 +221,10 @@ Lexer.prototype.token = function(src, top, bq) {
       this.tokens.push({
         type: 'code',
         lang: cap[2],
-        text: cap[3] || ''
+        text: cap[3] || '',
+        line: this.line
       });
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -213,8 +234,10 @@ Lexer.prototype.token = function(src, top, bq) {
       this.tokens.push({
         type: 'heading',
         depth: cap[1].length,
-        text: cap[2]
+        text: cap[2],
+        line: this.line
       });
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -226,8 +249,10 @@ Lexer.prototype.token = function(src, top, bq) {
         type: 'table',
         header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
         align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-        cells: cap[3].replace(/\n$/, '').split('\n')
+        cells: cap[3].replace(/\n$/, '').split('\n'),
+        line: this.line
       };
+      this.line += cap[0].count("\n");
 
       for (i = 0; i < item.align.length; i++) {
         if (/^ *-+: *$/.test(item.align[i])) {
@@ -256,8 +281,10 @@ Lexer.prototype.token = function(src, top, bq) {
       this.tokens.push({
         type: 'heading',
         depth: cap[2] === '=' ? 1 : 2,
-        text: cap[1]
+        text: cap[1],
+        line: this.line
       });
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -265,8 +292,10 @@ Lexer.prototype.token = function(src, top, bq) {
     if (cap = this.rules.hr.exec(src)) {
       src = src.substring(cap[0].length);
       this.tokens.push({
-        type: 'hr'
+        type: 'hr',
+        line: this.line
       });
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -275,7 +304,8 @@ Lexer.prototype.token = function(src, top, bq) {
       src = src.substring(cap[0].length);
 
       this.tokens.push({
-        type: 'blockquote_start'
+        type: 'blockquote_start',
+        line: this.line
       });
 
       cap = cap[0].replace(/^ *> ?/gm, '');
@@ -286,7 +316,8 @@ Lexer.prototype.token = function(src, top, bq) {
       this.token(cap, top, true);
 
       this.tokens.push({
-        type: 'blockquote_end'
+        type: 'blockquote_end',
+        line: this.line
       });
 
       continue;
@@ -299,7 +330,8 @@ Lexer.prototype.token = function(src, top, bq) {
 
       this.tokens.push({
         type: 'list_start',
-        ordered: bull.length > 1
+        ordered: bull.length > 1,
+        line: this.line
       });
 
       // Get each top-level item.
@@ -348,7 +380,8 @@ Lexer.prototype.token = function(src, top, bq) {
         this.tokens.push({
           type: loose
             ? 'loose_item_start'
-            : 'list_item_start'
+            : 'list_item_start',
+          line: this.line
         });
 
         // Recurse.
@@ -357,6 +390,9 @@ Lexer.prototype.token = function(src, top, bq) {
         this.tokens.push({
           type: 'list_item_end'
         });
+
+        if(i != l-1)
+          this.line += 1;
       }
 
       this.tokens.push({
@@ -375,8 +411,10 @@ Lexer.prototype.token = function(src, top, bq) {
           : 'html',
         pre: !this.options.sanitizer
           && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
-        text: cap[0]
+        text: cap[0],
+        line: this.line
       });
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -385,8 +423,10 @@ Lexer.prototype.token = function(src, top, bq) {
       src = src.substring(cap[0].length);
       this.tokens.links[cap[1].toLowerCase()] = {
         href: cap[2],
-        title: cap[3]
+        title: cap[3],
+        line: this.line
       };
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -398,8 +438,10 @@ Lexer.prototype.token = function(src, top, bq) {
         type: 'table',
         header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
         align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-        cells: cap[3].replace(/(?: *\| *)?\n$/, '').split('\n')
+        cells: cap[3].replace(/(?: *\| *)?\n$/, '').split('\n'),
+        line: this.line
       };
+      this.line += cap[0].count("\n");
 
       for (i = 0; i < item.align.length; i++) {
         if (/^ *-+: *$/.test(item.align[i])) {
@@ -431,8 +473,10 @@ Lexer.prototype.token = function(src, top, bq) {
         type: 'paragraph',
         text: cap[1].charAt(cap[1].length - 1) === '\n'
           ? cap[1].slice(0, -1)
-          : cap[1]
+          : cap[1],
+        line: this.line
       });
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -442,8 +486,10 @@ Lexer.prototype.token = function(src, top, bq) {
       src = src.substring(cap[0].length);
       this.tokens.push({
         type: 'text',
-        text: cap[0]
+        text: cap[0],
+        line: this.line
       });
+      this.line += cap[0].count("\n");
       continue;
     }
 
@@ -475,7 +521,7 @@ var inline = {
   del: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`\$]| {2,}\n|$)/,  // extension
 
-  math: /^ *\$ *([^\$]*) *\$/,  // extension
+  math: /^ *\$ *([^\$\n]*) *\$/,  // extension
 };
 
 inline._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
@@ -783,7 +829,7 @@ function Renderer(options) {
   this.options = options || {};
 }
 
-Renderer.prototype.code = function(code, lang, escaped) {
+Renderer.prototype.code = function(code, lang, escaped, line) {
   if (this.options.highlight) {
     var out = this.options.highlight(code, lang);
     if (out != null && out !== code) {
@@ -793,7 +839,9 @@ Renderer.prototype.code = function(code, lang, escaped) {
   }
 
   if (!lang) {
-    return '<pre><code>'
+    return '<pre><code line="'
+      + line
+      + '">'
       + (escaped ? code : escape(code, true))
       + '\n</code></pre>';
   }
@@ -801,25 +849,29 @@ Renderer.prototype.code = function(code, lang, escaped) {
   return '<pre><code class="'
     + this.options.langPrefix
     + escape(lang, true)
+    + '" line="'
+    + line
     + '">'
     + (escaped ? code : escape(code, true))
     + '\n</code></pre>\n';
 };
 
-Renderer.prototype.blockquote = function(quote) {
-  return '<blockquote>\n' + quote + '</blockquote>\n';
+Renderer.prototype.blockquote = function(quote, line) {
+  return '<blockquote line="' + line + '">\n' + quote + '</blockquote>\n';
 };
 
 Renderer.prototype.html = function(html) {
   return html;
 };
 
-Renderer.prototype.heading = function(text, level, raw) {
+Renderer.prototype.heading = function(text, level, raw, line) {
   return '<h'
     + level
     + ' id="'
     + this.options.headerPrefix
     + raw.toLowerCase().replace(/[^\w]+/g, '-')
+    + '" line="'
+    + line
     + '">'
     + text
     + '</h'
@@ -828,25 +880,26 @@ Renderer.prototype.heading = function(text, level, raw) {
 };
 
 Renderer.prototype.hr = function() {
-  return this.options.xhtml ? '<hr/>\n' : '<hr>\n';
+  return this.options.xhtml ? '<hr line="' + line + '"/>\n' : '<hr line="' + line + '">\n';
 };
 
-Renderer.prototype.list = function(body, ordered) {
+Renderer.prototype.list = function(body, ordered, line) {
   var type = ordered ? 'ol' : 'ul';
-  return '<' + type + '>\n' + body + '</' + type + '>\n';
+  return '<' + type + ' line="' + line + '">\n' + body + '</' + type + '>\n';
 };
 
-Renderer.prototype.listitem = function(text) {
-  return '<li>' + text + '</li>\n';
+Renderer.prototype.listitem = function(text, line) {
+  return '<li line="' + line + '">' + text + '</li>\n';
 };
 
-Renderer.prototype.paragraph = function(text) {
-  return '<p>' + text + '</p>\n';
+Renderer.prototype.paragraph = function(text, line) {
+  return '<p line="' + line + '">' + text + '</p>\n';
 };
 
-Renderer.prototype.table = function(header, body) {
-  return '<table>\n'
-    + '<thead>\n'
+Renderer.prototype.table = function(header, body, line) {
+  return '<table line="'
+    + line
+    + '">\n<thead>\n'
     + header
     + '</thead>\n'
     + '<tbody>\n'
@@ -1003,24 +1056,24 @@ Parser.prototype.tok = function() {
   switch (this.token.type) {
     case 'math': {
       return this.renderer.math(
-        this.token.text, 'block');
+        this.token.text, 'block', this.token.line);
     }
     case 'space': {
       return '';
     }
     case 'hr': {
-      return this.renderer.hr();
+      return this.renderer.hr(this.token.line);
     }
     case 'heading': {
       return this.renderer.heading(
         this.inline.output(this.token.text),
         this.token.depth,
-        this.token.text);
+        this.token.text, this.token.line);
     }
     case 'code': {
       return this.renderer.code(this.token.text,
         this.token.lang,
-        this.token.escaped);
+        this.token.escaped, this.token.line);
     }
     case 'table': {
       var header = ''
@@ -1055,7 +1108,7 @@ Parser.prototype.tok = function() {
 
         body += this.renderer.tablerow(cell);
       }
-      return this.renderer.table(header, body);
+      return this.renderer.table(header, body, this.token.line);
     }
     case 'blockquote_start': {
       var body = '';
@@ -1064,20 +1117,22 @@ Parser.prototype.tok = function() {
         body += this.tok();
       }
 
-      return this.renderer.blockquote(body);
+      return this.renderer.blockquote(body, this.token.line);
     }
     case 'list_start': {
       var body = ''
-        , ordered = this.token.ordered;
+        , ordered = this.token.ordered
+        , line = this.token.line;
 
       while (this.next().type !== 'list_end') {
         body += this.tok();
       }
 
-      return this.renderer.list(body, ordered);
+      return this.renderer.list(body, ordered, line);
     }
     case 'list_item_start': {
-      var body = '';
+      var body = ''
+        , line = this.token.line;
 
       while (this.next().type !== 'list_item_end') {
         body += this.token.type === 'text'
@@ -1085,28 +1140,29 @@ Parser.prototype.tok = function() {
           : this.tok();
       }
 
-      return this.renderer.listitem(body);
+      return this.renderer.listitem(body, line);
     }
     case 'loose_item_start': {
-      var body = '';
+      var body = ''
+        , line = this.token.line;
 
       while (this.next().type !== 'list_item_end') {
         body += this.tok();
       }
 
-      return this.renderer.listitem(body);
+      return this.renderer.listitem(body, line);
     }
     case 'html': {
       var html = !this.token.pre && !this.options.pedantic
         ? this.inline.output(this.token.text)
         : this.token.text;
-      return this.renderer.html(html);
+      return this.renderer.html(html, this.token.line);
     }
     case 'paragraph': {
-      return this.renderer.paragraph(this.inline.output(this.token.text));
+      return this.renderer.paragraph(this.inline.output(this.token.text), this.token.line);
     }
     case 'text': {
-      return this.renderer.paragraph(this.parseText());
+      return this.renderer.paragraph(this.parseText(), this.token.line);
     }
   }
 };
