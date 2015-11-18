@@ -93,20 +93,18 @@
   		font-size: 20px;
   	}
 
-  	.alert {
-  		position: fixed;
-  		left: 20px;
-  		height: 22px;
-  		font-size: 18px;
-  		background-color: #3A9BD9;
-  		color: white;
-  		min-width: 100px;
-  		padding-left: 5px;
-  	}
+  	.info {
+      position: fixed;
+      left: 20px;
+      font-size: 15px;
+      background-color: #3A9BD9;
+      color: white;
+      padding: 1px 15px;
+    }
 
-  	.empty {
-  		display: none;
-  	}
+    .empty {
+      display: none;
+    }
 
   </style>
 </head>
@@ -128,7 +126,7 @@
     
   </div>
 
-  <div class="alert empty">
+  <div class="info empty">
     
   </div>
 
@@ -463,23 +461,23 @@
 
   <script type="text/javascript">
 
-  	var ALERTID = 0;
-  	
-  	function alert(msg){
-  		var dn = $(".alert:not(.empty)").length;
-  		var d = $(".alert.empty").clone(true);
-  		d.html(msg);
-  		d.removeClass("empty");
-  		d.attr("id", ALERTID);
-  		$(".alert.empty").before(d);
-  		d.css("bottom", (50 + (d.outerHeight() + 5) * dn) + "px");
-  		setTimeout("removeAlert(" + ALERTID + ")", 3000);
-  		ALERTID++;
-  	}
+  	var INFOID = 0;
+    
+    function info(msg){
+      var dn = $(".info:not(.empty)").length;
+      var d = $(".info.empty").clone(true);
+      d.html(msg);
+      d.removeClass("empty");
+      d.attr("id", "info"+INFOID);
+      $(".info.empty").before(d);
+      d.css("bottom", (50 + (d.outerHeight() + 5) * dn) + "px");
+      setTimeout("removeInfo(" + INFOID + ")", 2000);
+      INFOID++;
+    }
 
-  	function removeAlert(alertID){
-  		$("#" + alertID).remove();
-  	}
+    function removeInfo(infoID){
+      $("#info" + infoID).remove();
+    }
 
   </script>
 </body>
