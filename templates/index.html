@@ -82,7 +82,7 @@
   {% module xsrf_form_html() %}
 
 	<div class="title">
-    <input type="text" name="title" value="" id="title">
+    <input type="text" name="title" value="{{ article['title']  }}" id="title">
   </div>
   <div id="editor">{{ article['content'] }}</div>
 	<div id="preview"></div>
