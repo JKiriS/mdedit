@@ -24,7 +24,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class IndexHandler(BaseHandler):
     def get(self):
-        self.redirect('/a/')
+        self.redirect('/a')
 
 
 class ArticleHandler(BaseHandler):

@@ -154,7 +154,7 @@ Lexer.prototype.lex = function(src) {
     .replace(/\u00a0/g, ' ')
     .replace(/\u2424/g, '\n');
 
-  this.line = 0;
+  this.line = 1;
 
   return this.token(src, true);
 };
@@ -316,8 +316,7 @@ Lexer.prototype.token = function(src, top, bq) {
       this.token(cap, top, true);
 
       this.tokens.push({
-        type: 'blockquote_end',
-        line: this.line
+        type: 'blockquote_end'
       });
 
       continue;
@@ -857,7 +856,8 @@ Renderer.prototype.code = function(code, lang, escaped, line) {
 };
 
 Renderer.prototype.blockquote = function(quote, line) {
-  return '<blockquote line="' + line + '">\n' + quote + '</blockquote>\n';
+  // return '<blockquote line="' + line + '">\n' + quote + '</blockquote>\n';
+  return '<blockquote>\n' + quote + '</blockquote>\n';
 };
 
 Renderer.prototype.html = function(html) {
@@ -885,7 +885,8 @@ Renderer.prototype.hr = function() {
 
 Renderer.prototype.list = function(body, ordered, line) {
   var type = ordered ? 'ol' : 'ul';
-  return '<' + type + ' line="' + line + '">\n' + body + '</' + type + '>\n';
+  // return '<' + type + ' line="' + line + '">\n' + body + '</' + type + '>\n';
+  return '<' + type + '>\n' + body + '</' + type + '>\n';
 };
 
 Renderer.prototype.listitem = function(text, line) {
@@ -1111,13 +1112,14 @@ Parser.prototype.tok = function() {
       return this.renderer.table(header, body, this.token.line);
     }
     case 'blockquote_start': {
-      var body = '';
+      var body = ''
+        , line = this.token.line;
 
       while (this.next().type !== 'blockquote_end') {
         body += this.tok();
       }
 
-      return this.renderer.blockquote(body, this.token.line);
+      return this.renderer.blockquote(body, line);
     }
     case 'list_start': {
       var body = ''

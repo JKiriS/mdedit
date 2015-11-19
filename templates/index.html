@@ -18,90 +18,49 @@
   </script>
   <script type="text/javascript" src="/static/js/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
   </script>
+  <script src="/static/js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
 
   <style type="text/css">
   	body {
-  		height: 100%;
-  		width: 100%;
   		margin: 0px;
   		padding: 0px;
   		background-color: #F9F9F5;
   	}
 
-  	div.main {
-  		height: inherit;
-  		margin: 0px;
-  		padding: 0px;
-  		width: 100%;
-  	}
-
-  	div.input {
-  		height: inherit;
-  		width: 50%;
-  		margin: 0px;
-  		padding: 0px;
-  		border: 0px;
-  		border-right: 1px dashed silver;
-  		display: inline-block;
-  		float: left;
-  		overflow-x: hidden;
-  	}
-
-  	div.output {
-  		height: inherit;
-  		width: 47%;
-  		margin: 0px;
-  		padding: 0px 1%;
-  		border: 0px;
-  		display: inline-block;
-  		float: left;
-  		overflow-x: hidden;
-
-  		font-family: Microsoft Yahei,Hiragino Sans GB,WenQuanYi Micro Hei,sans-serif;
-  		font-size: 16px;
-  	}
-
-  	.output p {
-  		text-indent: 2em;
-  	}
-
-    .output blockquote {
-      border-left-width: 10px;
-      background-color: rgba(128,128,128,0.05);
-      border-top-right-radius: 5px;
-      border-bottom-right-radius: 5px;
-      padding: 15px 20px;
+  	#editor {
+      border-right: 1px dashed silver;
+      float: left;
+      font-size: 18px;
     }
 
-  	#Content {
-  		padding: 2%;
-  		padding-top: 1%;
-  		padding-right: 0px;
-  		border: 0px;
-  		width: 98%;
-  		resize: none;
-  		font-size: 18px;
-  		line-height: 22px;
-  		background-color: #F9F9F5;
-  		outline: none;
-  	}
+    #preview {
+      height: inherit;
+      margin: 0px;
+      border: 0px;
+      padding: 0px 5px;
+      display: inline-block;
+      float: right;
+      overflow-y: auto;
+      font-family: Microsoft Yahei,Hiragino Sans GB,WenQuanYi Micro Hei,sans-serif;
+      font-size: 16px;
+    }
 
-  	.main .title {
-  		position: fixed;
-  		display: none;
-  		top: 30px;
-  		left: 30%;
-  		width: 40%;
-  		padding: 0.5%;
-  		background-color: rgba(216, 216, 216, 0.5);
-  	}
+    .title {
+      position: fixed;
+      display: none;
+      top: 30px;
+      left: 30%;
+      width: 40%;
+      padding: 0.5%;
+      background-color: rgba(216, 216, 216, 0.5);
+    }
 
-  	.main .title input {
-  		width: 99%;
-  		font-size: 20px;
-  	}
+    .title input {
+      width: 99%;
+      font-size: 20px;
+    }
 
-  	.info {
+    .info {
       position: fixed;
       left: 20px;
       font-size: 15px;
@@ -117,365 +76,17 @@
   </style>
 </head>
 <body>
-  <div class="main">
 
-  	<div class="title">
-  		<input type="text" name="title" value="{{ article['title'] }}" id="title">
-  	</div>
+  {% module xsrf_form_html() %}
 
-	  <div class="input">
-	  	{% module xsrf_form_html() %}
-		  <textarea id="Content">{{ article['content'] }}</textarea>
-	  </div>
-		  
-	  <div class="output">
-		  <div id="MathPreview" style=""></div>
-	  </div>
-    
+	<div class="title">
+    <input type="text" name="title" value="" id="title">
   </div>
+  <div id="editor">{{ article['content'] }}</div>
+	<div id="preview"></div>
+  <div class="info empty"></div>
 
-  <div class="info empty">
-    
-  </div>
+  <script src="/static/js/mdedit.js" type="text/javascript"></script>
 
-  <script>
-  	String.prototype.hashCode = function() {
-		var hash = 0, i, chr, len;
-		if (this.length == 0) return hash;
-		for (i = 0, len = this.length; i < len; i++) {
-			chr   = this.charCodeAt(i);
-			hash  = ((hash << 5) - hash) + chr;
-			hash |= 0; // Convert to 32bit integer
-		}
-		return hash;
-	};
-
-	String.prototype.trim = function(){
-		return this.replace(/(^[\s \n]*)|([\s \n]*$)/g, "");
-　　 }
-
-  	var renderer = new marked.Renderer();
-
-  	marked.equations = [];
-
-	renderer.math = function (text, type, line) {
-    if(type == 'inline'){
-      var mid = 'MathJax-S-' + text.trim().hashCode();
-
-      var ele = document.getElementById(mid);
-      if(ele){
-        return ele.outerHTML;
-      }
-      else{
-        marked.equations.push(mid);
-        return '<span id="' + mid + '" line="' + line + '">$' + text +'$</span>';
-      }
-    } 
-    else if(type == 'block'){
-      var mid = 'MathJax-D-' + text.trim().hashCode();
-
-      var ele = document.getElementById(mid);
-      if(ele){
-        return ele.outerHTML;
-      }
-      else{
-        marked.equations.push(mid);
-        return '<div id="' + mid + '" line="' + line + '">$$'+ text +'$$</div>';
-      }
-    }
-    return '';
-  };
-
-	marked.setOptions({
-		renderer: renderer,
-		gfm: true,
-		tables: true,
-		breaks: true,
-		pedantic: true,
-		sanitize: false,
-		smartLists: true,
-		smartypants: true
-	});
-  </script>
-
-  <script>
-
-	function render(){
-		var md = document.getElementById("Content").value;
-
-		marked.equations = [];
-
-		document.getElementById("MathPreview").innerHTML = marked(md);
-
-		for(var i=0; i<marked.equations.length; i++){
-			var mid = marked.equations[i];
-
-			var ele = document.getElementById(mid);
-			MathJax.Hub.Queue(
-		      ["Typeset", MathJax.Hub, ele]
-		    );
-		}
-	};
-
-	document.getElementById("title").addEventListener("input", function(event){
-		var title = document.getElementById("title").value;
-		document.title = title;
-		CHANGED = true;
-	});
-
-	$("#title").blur(function(){
-		$(".title").toggle();
-	});
-
-	CHANGED = false;
-
-	$(document).ready(function(){
-
-		$("body").outerHeight( $(window).height() );
-		$(".main textarea").outerHeight( $(".input").innerHeight()*0.96 );
-
-		render();
-
-	});
-
-	document.getElementById("Content").addEventListener("input", function(event){
-		render();
-		CHANGED = true;
-	});
-
-  </script>
-
-  <script type="text/javascript">
-
-  	function getCookie(name) {
-        var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
-        return r ? r[1] : undefined;
-    };
-
-    $.post = function(url, args, callback, dataType) {
-        if(! dataType){
-            dataType = "json";
-        }
-        if(typeof args == "object"){
-            args._xsrf = getCookie("_xsrf");
-            data = $.param(args);
-        } else {
-            data = args;
-        }
-        $.ajax({
-            url: url,
-            data: data,
-            dataType: dataType,
-            type: "POST",
-            success: function(response) {
-                callback(response);
-            }
-        });
-    };
-
-  </script>
-
-  <script type="text/javascript">
-  	// allow Tab in textarea
-  	var el = document.getElementById("Content");
-	el.addEventListener("keydown", function(e) {
-	    var keyCode = e.keyCode || e.which;
-
-	    if (keyCode === 9) {
-	        var start = el.selectionStart,
-	            end = el.selectionEnd, 
-	            value = el.value;
-
-	        var lineStart = value.lastIndexOf('\n', start),
-	            lineEnd = value.indexOf('\n', end),
-	            offset = 0;
-
-	        if (lineStart === -1) lineStart = 0;
-	        if (lineEnd === -1) lineEnd = value.length;
-
-	        if (lineStart === lineEnd);
-	        else if (lineStart !== 0) lineStart += 1;
-
-	        lines = value.substring(lineStart, lineEnd).split('\n');
-
-	        if (lines.length > 1) {
-	            offset = lines.length;
-	            lines = '\t' + lines.join('\n\t');
-
-	            el.value = value.substring(0, lineStart) + lines + value.substring(lineEnd);
-
-	            el.selectionStart = start + 1;
-	            el.selectionEnd = end + offset;
-	        } else {
-	            offset = 1;
-	            lines = lines[0];
-
-	            el.value = value.substring(0, start) + '\t' + value.substring(end);
-
-	            el.selectionStart = el.selectionEnd = start + offset;
-	        }
-
-	        e.preventDefault();
-	    }
-	})
-
-  </script>
-
-  <script type="text/javascript">
-
-    function save(){
-    	var content = document.getElementById("Content").value;
-    	var title = document.title;
-    	if(title.trim() == ""){
-    		info("错误：标题为空");
-    		return ;
-    	}
-    	if(! CHANGED){
-    		return ;
-    	}
-    	
-	    $.post("", {title: title, content: content}, function(result){
-	    	if(result.status == "ok"){
-          CHANGED = false;
-          info("保存成功");
-          if(result.redirect)
-            window.location.href = result.redirect;
-        } else {
-          info("错误：" + result.error);
-        }
-	    });
-    }
-
-  	document.getElementById("Content").addEventListener("keydown", function(event){
-
-		if (event.ctrlKey && event.keyCode === "S".charCodeAt(0)) {
-			event.preventDefault();
-	        
-	        save();
-	    }
-	    else if(event.ctrlKey && event.keyCode === "O".charCodeAt(0)) {
-	    	event.preventDefault();
-
-	    	save();
-	    	window.location.href = "/a";
-	    }
-	    else if(event.ctrlKey && event.keyCode === "L".charCodeAt(0)) {
-	    	event.preventDefault();
-
-	    	save();
-	    	window.location.href = "/l";
-	    }
-
-	    else if(event.ctrlKey && event.keyCode === "M".charCodeAt(0)){
-	    	event.preventDefault();
-
-	    	$(".title").show();
-	    	$("#title").focus();
-	    }
-	});
-
-  	// when paste html code
-	document.getElementById("Content").addEventListener("paste", function(event){
-		// if(event && event.clipboardData){
-		// 	if(/text\/html/.test(event.clipboardData.types)){
-		// 		event.preventDefault();
-		// 		var html = event.clipboardData.getData('text/html');
-		// 		var cap = null;
-		// 		if(cap = /<body>\n*([\s\S]*?)<\/body>/.exec(html)){
-		// 			document.getElementById("Content").value += cap[1];
-		// 		}
-				
-		// 	}
-		// }
-
-	});
-
-	// recognize files when drop in textarea
-	document.getElementById("Content").addEventListener("dragenter", function(event){
-		event.preventDefault();
-	});
-
-	document.getElementById("Content").addEventListener("dragover", function(event){
-		event.preventDefault();
-	});
-
-	document.getElementById("Content").addEventListener("drop", function(event){
-		event.preventDefault();
-
-		var files = event.dataTransfer.files;
-		for(var i=0; i<files.length; i++){
-			var reader = new FileReader();
-
-			var name = files[i].name;
-
-			reader.onload = function(event){
-				var url = event.target.result;
-				// document.getElementById("Content").value += 
-				// 	"![" + name + "](" + url + ")";
-				// $("body").append('<img src="'+event.target.result+'" alt="" />');
-			}
-
-			reader.readAsDataURL(files[i]);
-
-		}
-	});
-
-  </script>
-  <script type="text/javascript">
-
-  function getTopRow(){
-  	var ta = document.getElementById('Content');
-
-  	if(ta.scrollTop == 0)
-  		return 0;
-  	
-  	// 
-  	var paddingTop = document.defaultView.getComputedStyle(ta, null)['paddingTop'];
-  	if(paddingTop.endsWith("px")){
-  		paddingTop = parseFloat(paddingTop);
-  	} else {
-  		console.log("error when parse padding-top");
-  		return 0;
-  	}
-
-  	//
-  	var lineHeight = document.defaultView.getComputedStyle(ta, null)['lineHeight'];
-  	if(lineHeight.endsWith("px")){
-  		lineHeight = parseFloat(lineHeight);
-  	} else {
-  		console.log("error when parse line-height");
-  		return 0;
-  	}
-
-  	return Math.round((ta.scrollTop - paddingTop) / lineHeight);
-  }
-
-  document.getElementById('Content').addEventListener("scroll", function(event){
-  		// console.log(getTopRow());
-  });
-
-  </script>
-
-  <script type="text/javascript">
-
-  	var INFOID = 0;
-    
-    function info(msg){
-      var dn = $(".info:not(.empty)").length;
-      var d = $(".info.empty").clone(true);
-      d.html(msg);
-      d.removeClass("empty");
-      d.attr("id", "info"+INFOID);
-      $(".info.empty").before(d);
-      d.css("bottom", (50 + (d.outerHeight() + 5) * dn) + "px");
-      setTimeout("removeInfo(" + INFOID + ")", 2000);
-      INFOID++;
-    }
-
-    function removeInfo(infoID){
-      $("#info" + infoID).remove();
-    }
-
-  </script>
 </body>
 </html>
