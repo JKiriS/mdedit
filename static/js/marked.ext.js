@@ -188,18 +188,6 @@ Lexer.prototype.token = function(src, top, bq) {
       this.line += cap[0].count("\n");
     }
 
-    // extension math, must be below newline!!!
-    if (cap = this.rules.math.exec(src)) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'math',
-        text: cap[1],
-        line: this.line
-      });
-      this.line += cap[0].count("\n");
-      continue;
-    }
-
     // code
     if (cap = this.rules.code.exec(src)) {
       src = src.substring(cap[0].length);
@@ -209,6 +197,18 @@ Lexer.prototype.token = function(src, top, bq) {
         text: !this.options.pedantic
           ? cap.replace(/\n+$/, '')
           : cap,
+        line: this.line
+      });
+      this.line += cap[0].count("\n");
+      continue;
+    }
+
+    // extension math, must be below newline!!!
+    if (cap = this.rules.math.exec(src)) {
+      src = src.substring(cap[0].length);
+      this.tokens.push({
+        type: 'math',
+        text: cap[1],
         line: this.line
       });
       this.line += cap[0].count("\n");
@@ -627,17 +627,18 @@ InlineLexer.prototype.output = function(src) {
     , cap;
 
   while (src) {
-    // extension math
-    if (cap = this.rules.math.exec(src)) {
-      src = src.substring(cap[0].length);
-      out += this.renderer.math(cap[1], 'inline');
-      continue;
-    }
 
     // escape
     if (cap = this.rules.escape.exec(src)) {
       src = src.substring(cap[0].length);
       out += cap[1];
+      continue;
+    }
+
+    // extension math
+    if (cap = this.rules.math.exec(src)) {
+      src = src.substring(cap[0].length);
+      out += this.renderer.math(cap[1], 'inline');
       continue;
     }
 
