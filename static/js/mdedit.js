@@ -126,24 +126,24 @@ function syncScroll(){
 
 function resize(){
   if(! PREVIEW){
-    // $("body").outerHeight( $(window).height()-10 );
-    // $("body").width( $(window).width() );
+    $("body").outerHeight( $(window).height()-10 );
+    $("body").width( $(window).width() );
 
     $("#editor").show();
-    $("#editor").outerHeight( $(window).height() );
-    $("#editor").outerWidth( $(window).width() * 0.5 );
+    $("#editor").outerHeight( $("body").height() );
+    $("#editor").outerWidth( $("body").width() * 0.5 );
 
-    $("#preview").outerWidth( $(window).width() * 0.5 - 3 );
-    $("#preview").outerHeight( $(window).height() );
+    $("#preview").outerWidth( $("body").width() * 0.5 - 3 );
+    $("#preview").outerHeight( $("body").height() );
     $("#preview").css("margin-left", "0px");
     $("#preview").css("overflow-y", "auto");
     $("#preview").css("max-width", "");
   } else {
     $("#editor").hide();
-    // $("body").outerHeight( $(window).height()-10 );
-    // $("body").outerWidth( $(window).width() );
+    $("body").outerHeight( $(window).height()-10 );
+    $("body").outerWidth( $(window).width() );
 
-    var bodyWidth = $(window).width();
+    var bodyWidth = $("body").width();
     var maxWidth = 900;
     $("#preview").css("max-width", maxWidth + "px");
     $("#preview").css("overflow-y", "initial")
