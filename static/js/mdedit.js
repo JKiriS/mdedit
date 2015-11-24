@@ -133,7 +133,7 @@ function resize(){
     $("#editor").outerHeight( $(window).height() );
     $("#editor").outerWidth( $(window).width() * 0.5 );
 
-    $("#preview").outerWidth( $(window).width() * 0.5 );
+    $("#preview").outerWidth( $(window).width() * 0.5 - 3 );
     $("#preview").outerHeight( $(window).height() );
     $("#preview").css("margin-left", "0px");
     $("#preview").css("overflow-y", "auto");
