@@ -44,7 +44,8 @@ $.post = function(url, args, callback, dataType) {
 //
 var INFOID = 0 
   , CHANGED = false
-  , syncScrollDelay = null;
+  , syncScrollDelay = null
+  , PREVIEW = false;
 
 
 //
@@ -124,11 +125,38 @@ function syncScroll(){
 }
 
 function resize(){
-  $("body").outerHeight( $(window).height()-10 );
-  $("body").outerWidth( $(window).width() );
-  $("#editor").outerHeight($("body").innerHeight());
-  $("#editor").outerWidth($("body").innerWidth() * 0.5);
-  $("#preview").outerWidth($("body").innerWidth() - $("#editor").outerWidth());
+  if(! PREVIEW){
+    // $("body").outerHeight( $(window).height()-10 );
+    // $("body").width( $(window).width() );
+
+    $("#editor").show();
+    $("#editor").outerHeight( $(window).height() );
+    $("#editor").outerWidth( $(window).width() * 0.5 );
+
+    $("#preview").outerWidth( $(window).width() * 0.5 );
+    $("#preview").outerHeight( $(window).height() );
+    $("#preview").css("margin-left", "0px");
+    $("#preview").css("overflow-y", "auto");
+    $("#preview").css("max-width", "");
+  } else {
+    $("#editor").hide();
+    // $("body").outerHeight( $(window).height()-10 );
+    // $("body").outerWidth( $(window).width() );
+
+    var bodyWidth = $(window).width();
+    var maxWidth = 900;
+    $("#preview").css("max-width", maxWidth + "px");
+    $("#preview").css("overflow-y", "initial")
+    if(bodyWidth > maxWidth){
+      $("#preview").css("width", maxWidth + "px");
+      $("#preview").css("margin-left", (bodyWidth - maxWidth)/2 + "px");
+    }
+    else{
+      $("#preview").css("width", bodyWidth + "px");
+      $("#preview").css("margin-left", "0px");
+    }
+  }
+  
 }
 
 
@@ -184,7 +212,10 @@ var editor = ace.edit("editor");
 editor.getSession().setMode("ace/mode/markdown");
 editor.setShowPrintMargin(false);
 editor.getSession().setUseWrapMode(true);
-render();
+
+$(document).ready(function(){
+  render();
+})
 
 
 //
@@ -218,7 +249,6 @@ editor.getSession().on('changeScrollTop', function(scroll) {
     clearTimeout(syncScrollDelay);
   syncScrollDelay = setTimeout(syncScroll, 100);
 });
-
 
 // hot key
 editor.commands.addCommand({
@@ -258,4 +288,23 @@ editor.commands.addCommand({
       window.location.href = "/a/";
     },
     readOnly: false 
+});
+
+editor.commands.addCommand({
+    name: 'new',
+    bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
+    exec: function(editor) {
+      PREVIEW = !PREVIEW;
+      resize();
+    },
+    readOnly: false 
+});
+
+$(document).keydown(function(event){
+  if(event.ctrlKey && event.keyCode == 'P'.charCodeAt(0)){
+    event.preventDefault();
+
+    PREVIEW = !PREVIEW;
+    resize();
+  }
 });
