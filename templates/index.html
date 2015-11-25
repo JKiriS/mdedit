@@ -66,25 +66,12 @@
       width: 40%;
       padding: 0.5%;
       background-color: rgba(216, 216, 216, 0.5);
-      z-index: 3;
+      z-index: 2;
     }
 
     .title input {
       width: 99%;
       font-size: 20px;
-    }
-
-    .info {
-      position: fixed;
-      right: 20px;
-      font-size: 15px;
-      background-color: #3A9BD9;
-      color: white;
-      padding: 1px 15px;
-    }
-
-    .empty {
-      display: none;
     }
 
     .toolbar {
@@ -94,13 +81,12 @@
       width: 30px;
       height: 100%;
       overflow: hidden;
-      z-index: 3;
+      z-index: 2;
       padding-top: 2%;
     }
 
     .tool {
       height: 30px;
-      margin-bottom: 5px;
       padding: 3px;
       font-size: 20px;
     }
@@ -149,7 +135,6 @@
 
   <div id="editor" class="editor">{{ article['content'] }}</div>
 	<div id="preview" class="non-preview"></div>
-  <div class="info empty"></div>
 
 </body>
 <script src="/static/js/mdedit.js" type="text/javascript"></script>
@@ -158,6 +143,134 @@
   function expandToolBar() {
     $(".toolbar").toggleClass("toolbar-collapse");
   }
+
+  function save(){
+    var content = editor.getValue();
+    var title = document.title;
+    if(title.trim() == ""){
+      info("错误：标题为空");
+      return ;
+    }
+    if(! CHANGED){
+      return ;
+    }
+    
+    $.post("", {title: title, content: content}, function(result){
+      if(result.status == "ok"){
+        CHANGED = false;
+        info("保存成功");
+        if(result.redirect)
+          window.location.href = result.redirect;
+      } else {
+        info("错误：" + result.error);
+      }
+    }, 'json', function(rep){
+      info("网络错误");
+    });
+  }
+
+  // title
+  $("#title").on("input", function(event){
+    var title = document.getElementById("title").value;
+    document.title = title;
+
+    CHANGED = true;
+  });
+
+  $("#title").blur(function(){
+    $(".title").toggle();
+  });
+
+
+  function titleTags(){
+    $(".title").show();
+    $("#title").focus();
+  }
+
+  function goToList(){
+    save();
+    window.location.href = "/l";
+  }
+
+  function newArticle(){
+    save();
+    window.location.href = "/a/";
+  }
+
+  function preview(){
+    PREVIEW = !PREVIEW;
+    resize();
+  }
+
+  // hot key
+  editor.commands.addCommand({
+      name: 'save',
+      bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
+      exec: function(editor) {
+        save();
+      },
+      readOnly: false 
+  });
+
+  editor.commands.addCommand({
+      name: 'title',
+      bindKey: {win: 'Ctrl-M',  mac: 'Command-M'},
+      exec: function(editor) {
+        titleTags();
+      },
+      readOnly: false 
+  });
+
+  editor.commands.addCommand({
+      name: 'list',
+      bindKey: {win: 'Ctrl-L',  mac: 'Command-L'},
+      exec: function(editor) {
+        goToList();
+      },
+      readOnly: false 
+  });
+
+  editor.commands.addCommand({
+      name: 'new',
+      bindKey: {win: 'Ctrl-O',  mac: 'Command-O'},
+      exec: function(editor) {
+        newArticle();
+      },
+      readOnly: false 
+  });
+
+  editor.commands.addCommand({
+      name: 'preview',
+      bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
+      exec: function(editor) {
+        preview();
+      },
+      readOnly: false,
+      global: true
+  });
+
+  $(document).keydown(function(event){
+    if(event.ctrlKey && event.keyCode == 'P'.charCodeAt(0)){
+      event.preventDefault();
+
+      preview();
+    }
+    else if(event.ctrlKey && event.keyCode == 'L'.charCodeAt(0)){
+      event.preventDefault();
+
+      goToList();
+    }
+    else if(event.ctrlKey && event.keyCode == 'O'.charCodeAt(0)){
+      event.preventDefault();
+
+      newArticle();
+    }
+    else if(event.ctrlKey && event.keyCode == 'M'.charCodeAt(0)){
+      event.preventDefault();
+
+      titleTags();
+    }
+  });
 
 </script>
 </html>

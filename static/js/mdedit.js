@@ -49,28 +49,34 @@ $.post = function(url, args, success, dataType, error) {
 
 // info
 function info(msg){
-  var infoNum = $(".info:not(.empty)").length;
-  var emptyInfo = $(".info.empty")
-  var newInfo = emptyInfo.clone(true);
+  var infoNum = document.getElementsByClassName("info").length;
+  
+  if(! this.INFOID)
+    this.INFOID = 0;
 
-  newInfo.html(msg);
-  newInfo.removeClass("empty");
-  newInfo.attr("id", "info" + this.INFOID);
+  var newInfo = document.createElement("div");
+  newInfo.setAttribute("id", "info" + this.INFOID);
+  newInfo.setAttribute("class", "info");
+  newInfo.innerHTML = msg;
 
-  emptyInfo.before(newInfo);
-  newInfo.css("bottom", (50 + (newInfo.outerHeight() + 5) * infoNum) + "px");
+  newInfo.style.position = "fixed";
+  newInfo.style.left = "30px";
+  newInfo.style.fontSize = "15px";
+  newInfo.style.backgroundColor = "#3A9BD9";
+  newInfo.style.color = "white";
+  newInfo.style.padding = "1px 15px";
+  newInfo.style.zIndex = "2";
 
-  setTimeout("info.remove(" + this.INFOID + ")", 2000);
+  document.body.appendChild(newInfo);
+
+  newInfo.style.bottom = (50 + (newInfo.offsetHeight + 5) * infoNum) + "px";
+
+  setTimeout(function(infoID){
+      document.getElementById("info" + infoID).remove();
+    }, 2000, this.INFOID);
 
   this.INFOID++;
 }
-
-info.INFOID = 0;
-
-info.remove = function(infoID){
-  $("#info" + infoID).remove();
-}
-
 
 // extend and init marked.js
 var renderer = new marked.Renderer();
@@ -113,10 +119,14 @@ marked.setOptions({
   smartLists: true,
   smartypants: true
 });
-
-
 marked.equations = [];
 
+// init ace editor
+var editor = ace.edit("editor");
+editor.getSession().setMode("ace/mode/markdown");
+editor.setShowPrintMargin(false);
+editor.getSession().setUseWrapMode(true);
+editor.renderer.setScrollMargin(0, 10, 0, 0);
 
 //
 var CHANGED = false
@@ -140,31 +150,6 @@ function render(){
       );
   }
 };
-
-function save(){
-  var content = editor.getValue();
-  var title = document.title;
-  if(title.trim() == ""){
-    info("错误：标题为空");
-    return ;
-  }
-  if(! CHANGED){
-    return ;
-  }
-  
-  $.post("", {title: title, content: content}, function(result){
-    if(result.status == "ok"){
-      CHANGED = false;
-      info("保存成功");
-      if(result.redirect)
-        window.location.href = result.redirect;
-    } else {
-      info("错误：" + result.error);
-    }
-  }, 'json', function(rep){
-    info("网络错误");
-  });
-}
 
 function syncScroll(){
   var editorLine = parseInt($(".ace_gutter-cell:first").html());
@@ -219,55 +204,17 @@ function resize(){
 
 //
 resize();
-
-var editor = ace.edit("editor");
-editor.getSession().setMode("ace/mode/markdown");
-editor.setShowPrintMargin(false);
-editor.getSession().setUseWrapMode(true);
-
 editor.resize();
-editor.renderer.setScrollMargin(0, 10, 0, 0);
 
 $(document).ready(function(){
   render();
-})
-
+});
 
 //
 $(window).resize(function(event){
   resize();
   editor.resize();
 });
-
-
-// title
-document.getElementById("title").addEventListener("input", function(event){
-  var title = document.getElementById("title").value;
-  document.title = title;
-
-  CHANGED = true;
-});
-
-$("#title").blur(function(){
-  $(".title").toggle();
-});
-
-
-function titleTags(){
-  $(".title").show();
-  $("#title").focus();
-}
-
-function goToList(){
-  save();
-  window.location.href = "/l";
-}
-
-function newArticle(){
-  save();
-  window.location.href = "/a/";
-}
-
 
 //
 editor.getSession().on('change', function(e) {
@@ -279,66 +226,4 @@ editor.getSession().on('changeScrollTop', function(scroll) {
   if(syncScrollDelay)
     clearTimeout(syncScrollDelay);
   syncScrollDelay = setTimeout(syncScroll, 100);
-});
-
-
-// hot key
-editor.commands.addCommand({
-    name: 'save',
-    bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
-    exec: function(editor) {
-      save();
-    },
-    readOnly: false 
-});
-
-editor.commands.addCommand({
-    name: 'title',
-    bindKey: {win: 'Ctrl-M',  mac: 'Command-M'},
-    exec: function(editor) {
-      titleTags();
-    },
-    readOnly: false 
-});
-
-editor.commands.addCommand({
-    name: 'list',
-    bindKey: {win: 'Ctrl-L',  mac: 'Command-L'},
-    exec: function(editor) {
-      goToList();
-    },
-    readOnly: false 
-});
-
-editor.commands.addCommand({
-    name: 'new',
-    bindKey: {win: 'Ctrl-O',  mac: 'Command-O'},
-    exec: function(editor) {
-      newArticle();
-    },
-    readOnly: false 
-});
-
-editor.commands.addCommand({
-    name: 'preview',
-    bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
-    exec: function(editor) {
-      preview();
-    },
-    readOnly: false,
-    global: true
-});
-
-function preview(){
-
-  PREVIEW = !PREVIEW;
-  resize();
-}
-
-$(document).keydown(function(event){
-  if(event.ctrlKey && event.keyCode == 'P'.charCodeAt(0)){
-    event.preventDefault();
-
-    preview();
-  }
 });
