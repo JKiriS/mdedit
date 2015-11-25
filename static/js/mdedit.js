@@ -177,7 +177,7 @@ function resize(){
     $("#editor").outerHeight( bodyHeight );
     $("#editor").outerWidth( bodyWidth * 0.5 );
 
-    $("#preview").outerWidth( bodyWidth * 0.5 - 5 );
+    $("#preview").outerWidth( bodyWidth * 0.49 );
     $("#preview").outerHeight( bodyHeight );
     
     $("#preview").removeClass("preview");
