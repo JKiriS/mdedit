@@ -4,6 +4,8 @@
   <meta charset="utf-8"/>
   <title>{{ article['title'] }}</title>
 
+  <link rel="stylesheet" href="/static/css/fonts.css">
+
   <script src="/static/js/marked.ext.js"></script>
   <script src="/static/js/jquery-1.11.1.min.js"></script>
   <script type="text/x-mathjax-config">
@@ -27,14 +29,14 @@
   		background-color: #F9F9F5;
   	}
 
-  	#editor {
+  	.editor {
       border-right: 1px dashed silver;
       float: left;
       font-size: 18px;
       z-index: 1;
     }
 
-    #preview {
+    .non-preview {
       height: inherit;
       margin: 0px;
       border: 0px;
@@ -43,6 +45,17 @@
       overflow-y: auto;
       font-family: Microsoft Yahei,Hiragino Sans GB,WenQuanYi Micro Hei,sans-serif;
       font-size: 16px;
+      padding-left: 10px;
+      padding-bottom: 10px;
+    }
+
+    .preview {
+      max-width: 900px;
+      overflow-y: initial;
+      margin-left: 0px;
+      font-family: Microsoft Yahei,Hiragino Sans GB,WenQuanYi Micro Hei,sans-serif;
+      font-size: 16px;
+      height: 100%;
     }
 
     .title {
@@ -74,6 +87,32 @@
       display: none;
     }
 
+    .toolbar {
+      position: fixed;
+      margin: 0px;
+      padding: 0px;
+      width: 30px;
+      height: 100%;
+      overflow: hidden;
+      z-index: 3;
+      padding-top: 2%;
+    }
+
+    .tool {
+      height: 30px;
+      margin-bottom: 5px;
+      padding: 3px;
+      font-size: 20px;
+    }
+
+    .tool:hover {
+      cursor: pointer;
+    }
+
+    .toolbar-collapse {
+      height: 30px;
+    }
+
   </style>
 </head>
 <body>
@@ -83,10 +122,42 @@
 	<div class="title">
     <input type="text" name="title" value="{{ article['title']  }}" id="title">
   </div>
-  <div id="editor">{{ article['content'] }}</div>
-	<div id="preview"></div>
+
+  <div class="toolbar">
+    <div class="tool" title="工具条" onclick="expandToolBar()">
+      <span class="icon-menu"></span>
+    </div>
+    <div id="" class="tool" title="列表" onclick="goToList()">
+      <span class="icon-list2"></span>
+    </div>
+    <div id="" class="tool" title="新文档" onclick="newArticle()">
+      <span class="icon-file-empty"></span>
+    </div>
+    <div id="" class="tool" title="标题、标签" onclick="titleTags()">
+      <span class="icon-price-tag"></span>
+    </div>
+    <div id="" class="tool" title="预览" onclick="preview()">
+      <span class="icon-eye"></span>
+    </div>
+    <div id="" class="tool" title="保存" onclick="save()">
+      <span class="icon-floppy-disk"></span>
+    </div>
+    <div id="" class="tool" title="删除">
+      <span class="icon-bin"></span>
+    </div>
+  </div>
+
+  <div id="editor" class="editor">{{ article['content'] }}</div>
+	<div id="preview" class="non-preview"></div>
   <div class="info empty"></div>
 
 </body>
 <script src="/static/js/mdedit.js" type="text/javascript"></script>
+<script type="text/javascript">
+  
+  function expandToolBar() {
+    $(".toolbar").toggleClass("toolbar-collapse");
+  }
+
+</script>
 </html>

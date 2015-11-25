@@ -19,151 +19,61 @@ function getCookie(name) {
     return r ? r[1] : undefined;
 };
 
-$.post = function(url, args, callback, dataType) {
+$.post = function(url, args, success, dataType, error) {
   if(! dataType){
     dataType = "json";
   }
+
   if(typeof args == "object"){
     args._xsrf = getCookie("_xsrf");
     data = $.param(args);
   } else {
     data = args;
   }
+
   $.ajax({
     url: url,
     data: data,
     dataType: dataType,
     type: "POST",
     success: function(response) {
-        callback(response);
+        if(success)
+          success(response);
+    },
+    error: function(response) {
+        if(error)
+          error(response);
     }
   });
 };
 
-
-//
-var INFOID = 0 
-  , CHANGED = false
-  , syncScrollDelay = null
-  , PREVIEW = false;
-
-
-//
-function removeInfo(infoID){
-  $("#info" + infoID).remove();
-}
-
+// info
 function info(msg){
-  var dn = $(".info:not(.empty)").length;
-  var d = $(".info.empty").clone(true);
+  var infoNum = $(".info:not(.empty)").length;
+  var emptyInfo = $(".info.empty")
+  var newInfo = emptyInfo.clone(true);
 
-  d.html(msg);
-  d.removeClass("empty");
-  d.attr("id", "info"+INFOID);
-  $(".info.empty").before(d);
-  d.css("bottom", (50 + (d.outerHeight() + 5) * dn) + "px");
+  newInfo.html(msg);
+  newInfo.removeClass("empty");
+  newInfo.attr("id", "info" + this.INFOID);
 
-  setTimeout("removeInfo(" + INFOID + ")", 2000);
+  emptyInfo.before(newInfo);
+  newInfo.css("bottom", (50 + (newInfo.outerHeight() + 5) * infoNum) + "px");
 
-  INFOID++;
+  setTimeout("info.remove(" + this.INFOID + ")", 2000);
+
+  this.INFOID++;
 }
 
-function render(){
-  var md = editor.getValue();
+info.INFOID = 0;
 
-  marked.equations = [];
-
-  document.getElementById("preview").innerHTML = marked(md);
-
-  for(var i=0; i<marked.equations.length; i++){
-    var mid = marked.equations[i];
-
-    var ele = document.getElementById(mid);
-    MathJax.Hub.Queue(
-        ["Typeset", MathJax.Hub, ele]
-      );
-  }
-};
-
-function save(){
-  var content = editor.getValue();
-  var title = document.title;
-  if(title.trim() == ""){
-    info("错误：标题为空");
-    return ;
-  }
-  if(! CHANGED){
-    return ;
-  }
-  
-  $.post("", {title: title, content: content}, function(result){
-    if(result.status == "ok"){
-      CHANGED = false;
-      info("保存成功");
-      if(result.redirect)
-        window.location.href = result.redirect;
-    } else {
-      info("错误：" + result.error);
-    }
-  });
-}
-
-function syncScroll(){
-  var editorLine = parseInt($(".ace_gutter-cell:first").html());
-  
-  var lines = $("#preview").find("[line]");
-  var i = 0;
-  for(; i<lines.length; i++){
-    if(parseInt($(lines[i]).attr("line")) > editorLine)
-      break;
-  }
-  if(i > 0){
-    $("#preview").animate({ 
-        scrollTop: $("#preview").scrollTop() + $(lines[--i]).offset().top
-    }, 300);
-  }
-}
-
-function resize(){
-  if(! PREVIEW){
-    $("body").outerHeight( $(window).height()-10 );
-    $("body").width( $(window).width() );
-
-    $("#editor").show();
-    $("#editor").outerHeight( $("body").height() );
-    $("#editor").outerWidth( $("body").width() * 0.5 );
-
-    $("#preview").outerWidth( $("body").width() * 0.5 - 3 );
-    $("#preview").outerHeight( $("body").height() );
-    $("#preview").css("margin-left", "0px");
-    $("#preview").css("overflow-y", "auto");
-    $("#preview").css("max-width", "");
-  } else {
-    $("#editor").hide();
-    $("body").outerHeight( $(window).height()-10 );
-    $("body").outerWidth( $(window).width() );
-
-    var bodyWidth = $("body").width();
-    var maxWidth = 900;
-    $("#preview").css("max-width", maxWidth + "px");
-    $("#preview").css("overflow-y", "initial")
-    if(bodyWidth > maxWidth){
-      $("#preview").css("width", maxWidth + "px");
-      $("#preview").css("margin-left", (bodyWidth - maxWidth)/2 + "px");
-    }
-    else{
-      $("#preview").css("width", bodyWidth + "px");
-      $("#preview").css("margin-left", "0px");
-    }
-  }
-  
+info.remove = function(infoID){
+  $("#info" + infoID).remove();
 }
 
 
 // extend and init marked.js
 var renderer = new marked.Renderer();
-
-marked.equations = [];
 
 renderer.math = function (text, type, line) {
   if(type == 'inline'){
@@ -205,6 +115,108 @@ marked.setOptions({
 });
 
 
+marked.equations = [];
+
+
+//
+var CHANGED = false
+  , syncScrollDelay = null
+  , PREVIEW = false;
+
+
+function render(){
+  var md = editor.getValue();
+
+  marked.equations = [];
+
+  document.getElementById("preview").innerHTML = marked(md);
+
+  for(var i=0; i<marked.equations.length; i++){
+    var mid = marked.equations[i];
+
+    var ele = document.getElementById(mid);
+    MathJax.Hub.Queue(
+        ["Typeset", MathJax.Hub, ele]
+      );
+  }
+};
+
+function save(){
+  var content = editor.getValue();
+  var title = document.title;
+  if(title.trim() == ""){
+    info("错误：标题为空");
+    return ;
+  }
+  if(! CHANGED){
+    return ;
+  }
+  
+  $.post("", {title: title, content: content}, function(result){
+    if(result.status == "ok"){
+      CHANGED = false;
+      info("保存成功");
+      if(result.redirect)
+        window.location.href = result.redirect;
+    } else {
+      info("错误：" + result.error);
+    }
+  }, 'json', function(rep){
+    info("网络错误");
+  });
+}
+
+function syncScroll(){
+  var editorLine = parseInt($(".ace_gutter-cell:first").html());
+  
+  var lines = $("#preview").find("[line]");
+  var i = 0;
+  for(; i<lines.length; i++){
+    if(parseInt($(lines[i]).attr("line")) > editorLine)
+      break;
+  }
+  if(i > 0){
+    $("#preview").animate({ 
+        scrollTop: $("#preview").scrollTop() + $(lines[--i]).offset().top
+    }, 300);
+  }
+}
+
+function resize(){
+
+  var bodyWidth = $(window).width();
+  var bodyHeight = $(window).height();
+
+  if(! PREVIEW){
+    $("#editor").show();
+    $("#editor").outerHeight( bodyHeight );
+    $("#editor").outerWidth( bodyWidth * 0.5 );
+
+    $("#preview").outerWidth( bodyWidth * 0.5 );
+    $("#preview").outerHeight( bodyHeight );
+    
+    $("#preview").removeClass("preview");
+    $("#preview").css("margin-left", "0px");
+  } else {
+    $("#editor").hide();
+
+    $("#preview").addClass("preview");
+
+    var bodyWidth = $("body").width();
+    var maxWidth = 900;
+    $("#preview").css("height", "100%");
+    if(bodyWidth > maxWidth){
+      $("#preview").css("width", maxWidth + "px");
+      $("#preview").css("margin-left", (bodyWidth - maxWidth)/2 + "px");
+    } else {
+      $("#preview").css("width", bodyWidth);
+      $("#preview").css("margin-left", "0px");
+    }
+  }
+  
+}
+
+
 //
 resize();
 
@@ -212,6 +224,9 @@ var editor = ace.edit("editor");
 editor.getSession().setMode("ace/mode/markdown");
 editor.setShowPrintMargin(false);
 editor.getSession().setUseWrapMode(true);
+
+editor.resize();
+editor.renderer.setScrollMargin(0, 10, 0, 0);
 
 $(document).ready(function(){
   render();
@@ -238,6 +253,22 @@ $("#title").blur(function(){
 });
 
 
+function titleTags(){
+  $(".title").show();
+  $("#title").focus();
+}
+
+function goToList(){
+  save();
+  window.location.href = "/l";
+}
+
+function newArticle(){
+  save();
+  window.location.href = "/a/";
+}
+
+
 //
 editor.getSession().on('change', function(e) {
   render();
@@ -249,6 +280,7 @@ editor.getSession().on('changeScrollTop', function(scroll) {
     clearTimeout(syncScrollDelay);
   syncScrollDelay = setTimeout(syncScroll, 100);
 });
+
 
 // hot key
 editor.commands.addCommand({
@@ -264,8 +296,7 @@ editor.commands.addCommand({
     name: 'title',
     bindKey: {win: 'Ctrl-M',  mac: 'Command-M'},
     exec: function(editor) {
-      $(".title").show();
-      $("#title").focus();
+      titleTags();
     },
     readOnly: false 
 });
@@ -274,8 +305,7 @@ editor.commands.addCommand({
     name: 'list',
     bindKey: {win: 'Ctrl-L',  mac: 'Command-L'},
     exec: function(editor) {
-      save();
-      window.location.href = "/l";
+      goToList();
     },
     readOnly: false 
 });
@@ -284,27 +314,31 @@ editor.commands.addCommand({
     name: 'new',
     bindKey: {win: 'Ctrl-O',  mac: 'Command-O'},
     exec: function(editor) {
-      save();
-      window.location.href = "/a/";
+      newArticle();
     },
     readOnly: false 
 });
 
 editor.commands.addCommand({
-    name: 'new',
+    name: 'preview',
     bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
     exec: function(editor) {
-      PREVIEW = !PREVIEW;
-      resize();
+      preview();
     },
-    readOnly: false 
+    readOnly: false,
+    global: true
 });
+
+function preview(){
+
+  PREVIEW = !PREVIEW;
+  resize();
+}
 
 $(document).keydown(function(event){
   if(event.ctrlKey && event.keyCode == 'P'.charCodeAt(0)){
     event.preventDefault();
 
-    PREVIEW = !PREVIEW;
-    resize();
+    preview();
   }
 });
