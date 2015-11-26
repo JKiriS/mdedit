@@ -91,7 +91,7 @@ renderer.math = function (text, type, line) {
     }
     else{
       marked.equations.push(mid);
-      return '<span id="' + mid + '" line="' + line + '">$' + text +'$</span>';
+      return '<span id="' + mid + '">\\(' + text +'\\)</span>';
     }
   } 
   else if(type == 'block'){
@@ -103,11 +103,20 @@ renderer.math = function (text, type, line) {
     }
     else{
       marked.equations.push(mid);
-      return '<div id="' + mid + '" line="' + line + '">$$'+ text +'$$</div>';
+      return '<div id="' + mid + '" line="' + line + '">\\['+ text +'\\]</div>';
     }
   }
   return '';
 };
+
+// MathJax.Hub.Config({
+//       showProcessingMessages: false,
+//       tex2jax: { 
+//        inlineMath: [ ['$','$'],['\\(','\\)'] ],
+//        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+//        processEscapes: true
+//       },
+//     });
 
 marked.setOptions({
   renderer: renderer,
