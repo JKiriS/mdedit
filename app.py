@@ -27,6 +27,47 @@ class IndexHandler(BaseHandler):
         self.redirect('/a')
 
 
+class UploadHandler(BaseHandler):
+    def post(self):
+        res = {}
+        try:
+            name = self.get_argument('file.name')
+            tmpPath = self.get_argument('file.path')
+
+            paths = ['file',] + tmpPath.split('/')[-2:]
+            spath = '/'.join(paths)
+
+            _pointIndex = name.find('.')
+            if _pointIndex > 0:
+	        spath += name[_pointIndex:]
+            
+            os.symlink(tmpPath, '/home/jkiris/' + spath)
+            url = '/' + spath
+
+            fileInfo = dict(name=name,
+                size=self.get_argument('file.size'),
+                tmpPath=tmpPath,
+                MD5=self.get_argument('file.md5'),
+                contentType=self.get_argument('file.content_type'),
+                url=url
+            )
+
+            self.db.fileinfo.insert_one(fileInfo)
+            res['status'] = 'ok'
+            res['url'] = url
+        except:
+            res['status'] = 'error'
+            res['error'] = traceback.format_exc()
+
+        self.write(json.dumps(res))
+
+
+class FileListHandler(BaseHandler):
+    def get(self):
+        fis = self.db.fileinfo.find()
+        self.render('files.html', fis=fis)
+
+
 class ArticleHandler(BaseHandler):
     def get(self, aid):
         if not aid:
@@ -65,7 +106,7 @@ class ArticleHandler(BaseHandler):
                 res['status'] = 'ok'
             except:
                 res['status'] = 'error'
-                res['error'] = ''
+                res['error'] = traceback.format_exc()
 
         else:
             article = dict(
@@ -115,6 +156,9 @@ class Application(tornado.web.Application):
             (r"/(favicon\.ico)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 
             (r"/account/login", LoginHandler),
+
+            (r'/files', FileListHandler),
+            (r"/upload", UploadHandler),
 
             (r"/a/(.*)", ArticleHandler),
             (r"/l", ListHandler),
