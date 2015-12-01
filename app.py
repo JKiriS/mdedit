@@ -24,7 +24,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class IndexHandler(BaseHandler):
     def get(self):
-        self.redirect('/a')
+        self.render('index.html')
 
 
 class UploadHandler(BaseHandler):
@@ -83,7 +83,7 @@ class ArticleHandler(BaseHandler):
 
         if not article:
             raise tornado.web.HTTPError(404)
-        self.render('index.html', article=article)
+        self.render('edit.html', article=article)
 
     def post(self, aid):
         title = self.get_argument('title')
