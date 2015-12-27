@@ -1,44 +1,584 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8"/>
-  <title>主页</title>
+	<title>主页</title>
+	<link rel="stylesheet" href="/static/css/fonts.css">
+	<script type="text/javascript" src="/static/js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery-ui.js"></script>
+	<script type="text/javascript" src="/static/js/util.js"></script>
+	<style type="text/css">
 
-  <script src="/static/js/jquery-1.11.1.min.js"></script>
+		.main {
+			margin-top: 20px;
+			margin-left: 2%;
+			width: 90%;
+		}
 
-  <style type="text/css">
-    body {
-      margin: 0px;
-      padding: 0px;
-      background-color: #F9F9F5;
-    }
+		.items {
+			width: 30%;
+			display: inline-block;
+			height: 500px;
+			float: left;
+			padding-left: 10px; 
+		}
 
-    .main {
-      margin-top: 20px;
-      margin-left: 10%;
-      padding: 5px;
-      display: inline-block;
-      width: 40%;
-    }
+		.items .item-tools {
+			margin-bottom: 10px;
+		}
 
-    .main div {
-      margin-bottom: 10px;    
-    }
-    
-    .main a {
-      font-size: 20px;
-    }
-  </style>
+		.items .item-tools .tool {
+			display: inline-block;
+			margin-right: 5px;
+			cursor: pointer;
+		}
+
+		.items .item-tools .tool .icon {
+			margin-right: 3px;
+		}
+
+		.items .item-tools .upload{
+			margin-left: 5px;
+			margin-top: 3px;
+			margin-bottom: 3px;
+		}
+
+		#items .item{
+			display: block;
+			text-decoration: none;
+			margin: 3px 0px;
+			padding: 2px 0px;
+			cursor: default;
+		}
+
+		#items .item:hover{
+			border: 1px solid silver;
+			background-color: silver;
+		}
+
+		#items .item.selected{
+			border: 1px solid silver;
+			background-color: blue;
+		}
+
+		#items form {
+			display: inline-block;
+		}
+
+		#items .item .icon {
+			margin-right: 3px;
+		}
+
+		.preview {
+			width: 30%;
+			display: inline-block;
+			height: 500px;
+			float: left;
+		}
+
+		.dirnav {
+			width: 15%;
+			display: inline-block;
+			height: 500px;
+			float: left;
+			overflow: auto;
+			margin-right: 20px;
+		}
+
+		#dirnav .item{
+			height: 30px;
+		}
+
+		#dirnav .item.shrinked{
+			display: none;
+		}
+
+		#dirnav .item:hover{
+			border: 1px solid silver;
+			background-color: silver;
+		}
+
+		#dirnav .item.active{
+			border: 1px solid silver;
+			background-color: blue;
+		}
+
+		#dirnav .item .icon {
+			margin-right: 3px;
+		}
+
+		.ui-state-hover {
+			background-color: pink;
+		}
+	</style>
 </head>
 <body>
-
-  <div class="main">
-    <div><a href="/files">文件列表</a></div>
-    <div><a href="/a/">新文档</a></div>
-    <div><a href="/l">文档列表</a></div>
-  </div>
-
+	{% module xsrf_form_html() %}
+	<div class="main">
+		<div class="dirnav">
+			<div id="dirnav">&nbsp;</div>
+		</div>
+		<div class="items">
+			<div class="item-tools">
+				<div class="tool upper-dir">
+					<span class="icon icon-undo2"></span>上一级
+				</div>
+				<div class="tool new-dir">
+					<span class="icon icon-folder-plus"></span>新归档
+				</div>				
+				<div class="tool new-doc">
+					<span class="icon icon-file-empty"></span>新文档
+				</div>
+				<div class="tool remove-items">
+					<span class="icon icon-bin"></span>删除
+				</div>
+				<div class="tool upload-file">
+					<span class="icon icon-cloud-upload"></span>上传
+				</div>
+				<div class="tool upload" style="display: none">
+					<form name="upload" method="POST" enctype="multipart/form-data" action="/upload">
+					    {% module xsrf_form_html() %}
+					    <input type="file" name="file" required>
+					    <input type="submit" name="submit">
+					  </form>
+				</div>
+			</div>
+			<div id="items">&nbsp;</div>
+		</div>
+		<div class="preview">
+			<div id="preview">&nbsp;</div>
+		</div>
+	</div>
 </body>
+<script type="text/javascript">
+
+var PARENT = "{{ parent }}";
+var ROOT = "{{ ROOT }}";
+var items = [];
+
+
+function renderDir(item){
+	return '<div class="item dir" id="{}"><span class="icon icon-folder"></span><span class="title">{}</span></div>'.format(item._id, item.title);
+}
+
+function renderDoc(item){
+	return '<a class="item doc" id="{}" href="{}" target="_blank"><span class="icon icon-file-text2"></span><span class="title">{}</span></a>'.format(item._id, item.url, item.title);
+}
+
+function renderFile(item){
+	return '<a class="item file" id="{}" href="{}" target="_blank"><span class="icon icon-file-empty"></span><span class="title">{}</span></a>'.format(item._id, item.url, item.title);
+}
+
+function moveItems(sources, target){
+	$.post("/move", {target: target, sources: sources}, function(result){
+	    if(result.status == "ok"){
+	        info("移动成功");
+	        loadItems();
+	        loadDirs();
+	    } else {
+	        info("移动错误：" + result.error);
+	    }
+	}, 'json', function(rep){
+		info("网络错误");
+	});
+}
+
+function renderItems(items) {
+	$("#items").html('');
+	items.forEach(function(item, i){
+		if(item.type == 'dir'){
+			$("#items").append(renderDir(item));
+		} else if(item.type == 'doc'){
+			$("#items").append(renderDoc(item));
+		} else if(item.type == 'file'){
+			$("#items").append(renderFile(item));
+		}
+	});
+
+	$("#items .item").draggable({
+        appendTo: "body",
+        helper: "clone"
+    });
+
+    $("#items .item.dir").droppable({
+    	activeClass: "ui-state-default",
+        hoverClass: "ui-state-hover",
+        accept: ":not(.ui-sortable-helper)",
+        drop: function( event, ui ) {
+            var targetId = $(this).attr('id');
+            var sourceIds = [];
+            $("#items .item.selected").each(function(){
+            	sourceIds.push($(this).attr('id'));
+            });
+            if(sourceIds.length > 0)
+            	moveItems(sourceIds, targetId);
+        }
+    });
+}
+
+function openItem(item) {
+	if($(item).hasClass('dir')) {
+		PARENT = $(item).attr('id');
+		loadItems();
+	} else if (url = $(item).attr('href')) {
+		window.open(url, "_blank"); 
+	}
+
+}
+
+function previewItem(item) {
+	$("#preview").html(item.toString());
+}
+
+var RENAMING = false;
+
+function reName(item) {
+	RENAMING = true;
+	var oldTitle = $(item).find('span.title').html();
+	$(item).find('span.title').replaceWith('<form id="rename"><input value="{}"></form>'.format(oldTitle));
+	$(item).removeClass('item');
+
+	$('#items form#rename input').focus(function(){
+		 $(this).select();
+	});
+	$('#items form#rename input').focus();
+	$('#items form#rename input').blur(function(event){
+		cancelReName();
+	});
+	$('#items form#rename').submit(function(event) {
+		event.preventDefault();
+
+		var newTitle = $(this).find('input').val();
+		var target = $(item).attr("id");
+		console.log(target);
+		if(!target || newTitle==oldTitle)
+			return
+		
+		$.post("/rename", {target: target, title: newTitle}, function(result){
+		    if(result.status == "ok"){
+		        info("重命名成功");
+		        loadItems();
+		        if($(item).hasClass('dir'))
+		        	loadDirs();
+		    } else {
+		        info("重命名错误：" + result.error);
+		    }
+		}, 'json', function(rep){
+			info("网络错误");
+		});
+	});
+}
+
+function cancelReName() {
+	if(RENAMING) {
+		RENAMING = false;
+		renderItems(items);
+	}
+}
+
+function loadItems() {
+	$.post("/items", {parent: PARENT}, function(result){
+	    if(result.status == "ok"){
+	    	items = result.items;
+	    	renderItems(items);
+	        info("加载成功");
+	    } else {
+	        info("加载错误：" + result.error);
+	    }
+	}, 'json', function(rep){
+		info("网络错误");
+	});
+}
+
+loadItems();
+
+var _clickTimer, _delay = 100;
+$("#items").on("click", ".item", function(event) {
+
+	var that = this;
+	_clickTimer = setTimeout(function(){
+		cancelReName();
+
+		if(event.ctrlKey){
+			$(that).toggleClass("selected");
+		} else if($(that).hasClass("selected")){
+			$("#items .item").removeClass("selected");
+			reName(this);
+		} else {
+			$("#items .item").removeClass("selected");
+			$(that).addClass("selected");
+			previewItem(that);
+		}
+	}, _delay);
+
+	return false;
+});
+
+$("#items").on("dblclick", ".item", function(event) {
+	clearTimeout(_clickTimer);
+	openItem(this);
+});
+
+$(document).on("click", function() {
+	$("#items .item").removeClass("selected");
+});
+
+function delItems(targets, completely){
+	if(!completely)
+		completely = false
+
+	$.post("/delete", {targets: targets, completely: completely}, function(result){
+	    if(result.status == "ok"){
+	    	loadItems();
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(rep){
+		info("网络错误");
+	});
+}
+
+$(document).keydown(function(event){
+	if($(event.target).is('input, textarea')) {
+        return;
+    }
+
+	if(event.keyCode == 46) {
+		var targets = [];
+		$("#items .item.selected").each(function(){
+			if(tid = $(this).attr('id')){
+				targets.push(tid);
+			}
+		});
+		if(targets.length == 0)
+			return ;
+
+		event.preventDefault();
+		if(event.shiftKey) {
+			if(confirm("确认彻底删除 {} 项？".format(targets.length))) {
+			    delItems(targets, true);
+			}
+		} else {
+			if(confirm("确认删除 {} 项？".format(targets.length))) {
+			    delItems(targets);
+			}
+		}
+	} else if(event.keyCode == 13) {
+		if(item = $("#items .item.selected").first()){
+			event.preventDefault();
+			openItem(item);
+		}
+	} else if(event.keyCode == 8) {
+		event.preventDefault();
+
+		upperDir();
+	}
+});
+
+var dis = [];
+
+
+function renderNavDir(dir, level) {
+	if(level == 0)
+		return '<div class="item" id="{}" pid="{}"><span class="icon icon-folder"></span>{}</div>'.format(dir._id, dir.parent, dir.title);
+	else
+		return '<div class="item shrinked" id="{}" pid="{}">{}<span class="icon icon-folder"></span>{}</div>'.format(dir._id, dir.parent, '&nbsp;'.repeat(level), dir.title);
+}
+
+function _renderDirs(dirs) {
+	var level = 0;
+	$("#dirnav").html('');
+
+	_curLevelDirs = [];
+	dirs.forEach(function(dir, i) {
+		if(dir.parent == ROOT){
+			$("#dirnav").append(renderNavDir(dir, level));
+			_curLevelDirs.push(dir._id);
+		}
+	});
+
+	var _temp;
+	var last;
+
+	while(_curLevelDirs.length > 0){
+		
+		level += 1;
+		_temp = [];
+		_curLevelDirs.forEach(function(pdir, pi){
+			last = $("#dirnav #{}".format(pdir));
+			dirs.forEach(function(dir, i) {
+				if(dir.parent == pdir){
+					$(last).after(renderNavDir(dir, level));
+					last = $("#dirnav #{}".format(dir._id));
+					_temp.push(dir._id);
+				}
+			})
+		});
+
+		_curLevelDirs = _temp;
+	}
+}
+
+function renderDirs(dirs) {
+	_renderDirs(dirs);
+	$("#dirnav .item").droppable({
+    	activeClass: "ui-state-default",
+        hoverClass: "ui-state-hover",
+        accept: ":not(.ui-sortable-helper)",
+        drop: function( event, ui ) {
+            var targetId = $(this).attr('id');
+            var sourceIds = [];
+            $("#items .item.selected").each(function(){
+            	sourceIds.push($(this).attr('id'));
+            });
+            console.log(targetId);
+            console.log(sourceIds);
+        }
+    });
+}
+
+function openDir(dir) {
+	PARENT = $(dir).attr('id');
+	loadItems();
+}
+
+function expandDir(dir) {
+	var did = $(dir).attr('id');
+	$(dir).find('span.icon').toggleClass('icon-folder');
+	$(dir).find('span.icon').toggleClass('icon-folder-open');
+	$('#dirnav .item[pid="'+did+'"]').removeClass('shrinked');
+}
+
+
+function shrinkDir(dir) {
+	var did = $(dir).attr('id');
+	$(dir).find('span.icon').toggleClass('icon-folder-open');
+	$(dir).find('span.icon').toggleClass('icon-folder');
+	$('#dirnav .item[pid="'+did+'"]').addClass('shrinked');
+}
+
+function activeDir(did, cur) {
+	if(!did)
+		return ;
+	if(cur == null)
+		cur = true;
+
+	var dir = $('#dirnav .item[id="'+did+'"]').first();
+	if(dir) {
+		if(cur)
+			dir.addClass('active');
+		else
+			expandDir(dir);
+		activeDir(dir.attr('pid'), false);
+	}
+}
+
+function loadDirs(){
+	$.post("/dirs", {}, function(result){
+	    if(result.status == "ok"){
+	    	dirs = result.dirs;
+	    	renderDirs(result.dirs);
+
+			// activeDir(result.curDir);
+
+	        info("加载成功");
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(rep){
+		info("网络错误");
+	});
+}
+
+loadDirs();
+
+$("#dirnav").on("click", ".item", function(event) {
+	openDir(this);
+
+	return false;
+});
+
+
+$("#dirnav").on("click", ".item .icon", function(event) {
+	var parent = $(this).parents('.item').first();
+	if($(this).hasClass('icon-folder'))
+		expandDir(parent);
+	else
+		shrinkDir(parent);
+
+	return false;
+});
+
+function newDir(callback){
+	$.post("/newdir", {parent: PARENT}, function(result){
+	    if(result.status == "ok"){
+	    	if(callback)
+	    		callback(result.item);
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(rep){
+		info("网络错误");
+	});
+}
+
+$(".new-dir").on("click", function(event){
+	newDir(function(item){
+		items.push(item);
+		$("#items").append(renderDir(item));
+		reName($("#items #{}".format(item._id)));
+	});
+});
+
+function newDoc(callback){
+	$.post("/newdoc", {parent: PARENT}, function(result){
+	    if(result.status == "ok"){
+	    	if(callback)
+	    		callback(result.item);
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(rep){
+		info("网络错误");
+	});
+}
+
+$(".new-doc").on("click", function(event){
+	newDoc(function(item){
+		items.push(item);
+		$("#items").append(renderDoc(item));
+		reName($("#items #{}".format(item._id)));
+	});
+});
+
+function upperDir() {
+	if(parent = $("#dirnav #{}".format(PARENT))){
+		if(pparent = parent.attr('pid')){
+			PARENT = pparent;
+			loadItems();
+		}
+	}
+}
+
+$(".upper-dir").on("click", function(event){
+	upperDir();
+});
+
+$(".remove-items").on("click", function(event){
+	var targets = [];
+	$("#items .item.selected").each(function(){
+		if(tid = $(this).attr('id')){
+			targets.push(tid);
+		}
+	});
+
+	if(targets.length > 0 && confirm("确认删除 {} 项？".format(targets.length))) {
+	    delItems(targets);
+	}
+});
+
+$(".upload-file").on("click", function(event){
+	$(".tool.upload").toggle();
+});
+
+</script>
 </html>
-
-

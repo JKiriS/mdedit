@@ -72,7 +72,7 @@
       height: 100%;
       overflow: hidden;
       z-index: 2;
-      padding-top: 2%;
+      padding-top: 3px;
     }
 
     .tool {
@@ -103,8 +103,8 @@
     <div class="tool" title="工具条" onclick="expandToolBar()">
       <span class="icon-menu"></span>
     </div>
-    <div id="" class="tool" title="列表" onclick="goToList()">
-      <span class="icon-list2"></span>
+    <div id="" class="tool" title="主页" onclick="goToIndex()">
+      <span class="icon-home"></span>
     </div>
     <div id="" class="tool" title="新文档" onclick="newArticle()">
       <span class="icon-file-empty"></span>
@@ -123,10 +123,11 @@
     </div>
   </div>
 
-  <div id="editor" class="editor">{{ article['content'] }}</div>
+  <div id="editor" class="editor">{{ article.get('content', '') }}</div>
 	<div id="preview" class="non-preview"></div>
 
 </body>
+<script src="/static/js/util.js" type="text/javascript"></script>
 <script src="/static/js/mdedit.js" type="text/javascript"></script>
 <script type="text/javascript">
   
@@ -177,9 +178,9 @@
     $("#title").focus();
   }
 
-  function goToList(){
+  function goToIndex(){
     save();
-    window.location.href = "/l";
+    window.location.href = "/";
   }
 
   function newArticle(){
@@ -213,9 +214,9 @@
 
   editor.commands.addCommand({
       name: 'list',
-      bindKey: {win: 'Ctrl-L',  mac: 'Command-L'},
+      bindKey: {win: 'Ctrl-I',  mac: 'Command-L'},
       exec: function(editor) {
-        goToList();
+        goToIndex();
       },
       readOnly: false 
   });
@@ -245,10 +246,10 @@
 
       preview();
     }
-    else if(event.ctrlKey && event.keyCode == 'L'.charCodeAt(0)){
+    else if(event.ctrlKey && event.keyCode == 'I'.charCodeAt(0)){
       event.preventDefault();
 
-      goToList();
+      goToIndex();
     }
     else if(event.ctrlKey && event.keyCode == 'O'.charCodeAt(0)){
       event.preventDefault();
