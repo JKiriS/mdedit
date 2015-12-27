@@ -302,7 +302,7 @@ $("#items").on("click", ".item", function(event) {
 			$(that).toggleClass("selected");
 		} else if($(that).hasClass("selected")){
 			$("#items .item").removeClass("selected");
-			reName(this);
+			reName(that);
 		} else {
 			$("#items .item").removeClass("selected");
 			$(that).addClass("selected");
