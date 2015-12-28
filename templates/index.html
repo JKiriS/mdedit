@@ -15,7 +15,7 @@
 		}
 
 		.items {
-			width: 30%;
+			width: 40%;
 			display: inline-block;
 			height: 500px;
 			float: left;
@@ -85,7 +85,8 @@
 		}
 
 		#dirnav .item{
-			height: 30px;
+			padding: 3px 5px;
+    		font-size: 20px;
 		}
 
 		#dirnav .item.shrinked{
@@ -103,7 +104,7 @@
 		}
 
 		#dirnav .item .icon {
-			margin-right: 3px;
+			margin-right: 5px;
 		}
 
 		.ui-state-hover {
@@ -118,6 +119,7 @@
 			<div id="dirnav">&nbsp;</div>
 		</div>
 		<div class="items">
+			<div class="current-dir"></div>
 			<div class="item-tools">
 				<div class="tool upper-dir">
 					<span class="icon icon-undo2"></span>上一级
@@ -153,226 +155,6 @@
 
 var PARENT = "{{ parent }}";
 var ROOT = "{{ ROOT }}";
-var items = [];
-
-
-function renderDir(item){
-	return '<div class="item dir" id="{}"><span class="icon icon-folder"></span><span class="title">{}</span></div>'.format(item._id, item.title);
-}
-
-function renderDoc(item){
-	return '<a class="item doc" id="{}" href="{}" target="_blank"><span class="icon icon-file-text2"></span><span class="title">{}</span></a>'.format(item._id, item.url, item.title);
-}
-
-function renderFile(item){
-	return '<a class="item file" id="{}" href="{}" target="_blank"><span class="icon icon-file-empty"></span><span class="title">{}</span></a>'.format(item._id, item.url, item.title);
-}
-
-function moveItems(sources, target){
-	$.post("/move", {target: target, sources: sources}, function(result){
-	    if(result.status == "ok"){
-	        info("移动成功");
-	        loadItems();
-	        loadDirs();
-	    } else {
-	        info("移动错误：" + result.error);
-	    }
-	}, 'json', function(rep){
-		info("网络错误");
-	});
-}
-
-function renderItems(items) {
-	$("#items").html('');
-	items.forEach(function(item, i){
-		if(item.type == 'dir'){
-			$("#items").append(renderDir(item));
-		} else if(item.type == 'doc'){
-			$("#items").append(renderDoc(item));
-		} else if(item.type == 'file'){
-			$("#items").append(renderFile(item));
-		}
-	});
-
-	$("#items .item").draggable({
-        appendTo: "body",
-        helper: "clone"
-    });
-
-    $("#items .item.dir").droppable({
-    	activeClass: "ui-state-default",
-        hoverClass: "ui-state-hover",
-        accept: ":not(.ui-sortable-helper)",
-        drop: function( event, ui ) {
-            var targetId = $(this).attr('id');
-            var sourceIds = [];
-            $("#items .item.selected").each(function(){
-            	sourceIds.push($(this).attr('id'));
-            });
-            if(sourceIds.length > 0)
-            	moveItems(sourceIds, targetId);
-        }
-    });
-}
-
-function openItem(item) {
-	if($(item).hasClass('dir')) {
-		PARENT = $(item).attr('id');
-		loadItems();
-	} else if (url = $(item).attr('href')) {
-		window.open(url, "_blank"); 
-	}
-
-}
-
-function previewItem(item) {
-	$("#preview").html(item.toString());
-}
-
-var RENAMING = false;
-
-function reName(item) {
-	RENAMING = true;
-	var oldTitle = $(item).find('span.title').html();
-	$(item).find('span.title').replaceWith('<form id="rename"><input value="{}"></form>'.format(oldTitle));
-	$(item).removeClass('item');
-
-	$('#items form#rename input').focus(function(){
-		 $(this).select();
-	});
-	$('#items form#rename input').focus();
-	$('#items form#rename input').blur(function(event){
-		cancelReName();
-	});
-	$('#items form#rename').submit(function(event) {
-		event.preventDefault();
-
-		var newTitle = $(this).find('input').val();
-		var target = $(item).attr("id");
-		console.log(target);
-		if(!target || newTitle==oldTitle)
-			return
-		
-		$.post("/rename", {target: target, title: newTitle}, function(result){
-		    if(result.status == "ok"){
-		        info("重命名成功");
-		        loadItems();
-		        if($(item).hasClass('dir'))
-		        	loadDirs();
-		    } else {
-		        info("重命名错误：" + result.error);
-		    }
-		}, 'json', function(rep){
-			info("网络错误");
-		});
-	});
-}
-
-function cancelReName() {
-	if(RENAMING) {
-		RENAMING = false;
-		renderItems(items);
-	}
-}
-
-function loadItems() {
-	$.post("/items", {parent: PARENT}, function(result){
-	    if(result.status == "ok"){
-	    	items = result.items;
-	    	renderItems(items);
-	        info("加载成功");
-	    } else {
-	        info("加载错误：" + result.error);
-	    }
-	}, 'json', function(rep){
-		info("网络错误");
-	});
-}
-
-loadItems();
-
-var _clickTimer, _delay = 100;
-$("#items").on("click", ".item", function(event) {
-
-	var that = this;
-	_clickTimer = setTimeout(function(){
-		cancelReName();
-
-		if(event.ctrlKey){
-			$(that).toggleClass("selected");
-		} else if($(that).hasClass("selected")){
-			$("#items .item").removeClass("selected");
-			reName(that);
-		} else {
-			$("#items .item").removeClass("selected");
-			$(that).addClass("selected");
-			previewItem(that);
-		}
-	}, _delay);
-
-	return false;
-});
-
-$("#items").on("dblclick", ".item", function(event) {
-	clearTimeout(_clickTimer);
-	openItem(this);
-});
-
-$(document).on("click", function() {
-	$("#items .item").removeClass("selected");
-});
-
-function delItems(targets, completely){
-	if(!completely)
-		completely = false
-
-	$.post("/delete", {targets: targets, completely: completely}, function(result){
-	    if(result.status == "ok"){
-	    	loadItems();
-	    } else {
-	        info("错误：" + result.error);
-	    }
-	}, 'json', function(rep){
-		info("网络错误");
-	});
-}
-
-$(document).keydown(function(event){
-	if($(event.target).is('input, textarea')) {
-        return;
-    }
-
-	if(event.keyCode == 46) {
-		var targets = [];
-		$("#items .item.selected").each(function(){
-			if(tid = $(this).attr('id')){
-				targets.push(tid);
-			}
-		});
-		if(targets.length == 0)
-			return ;
-
-		event.preventDefault();
-		if(event.shiftKey) {
-			if(confirm("确认彻底删除 {} 项？".format(targets.length))) {
-			    delItems(targets, true);
-			}
-		} else {
-			if(confirm("确认删除 {} 项？".format(targets.length))) {
-			    delItems(targets);
-			}
-		}
-	} else if(event.keyCode == 13) {
-		if(item = $("#items .item.selected").first()){
-			event.preventDefault();
-			openItem(item);
-		}
-	} else if(event.keyCode == 8) {
-		event.preventDefault();
-
-		upperDir();
-	}
-});
 
 var dis = [];
 
@@ -430,8 +212,8 @@ function renderDirs(dirs) {
             $("#items .item.selected").each(function(){
             	sourceIds.push($(this).attr('id'));
             });
-            console.log(targetId);
-            console.log(sourceIds);
+            if(sourceIds.length > 0)
+            	moveItems(sourceIds, targetId);
         }
     });
 }
@@ -484,8 +266,8 @@ function loadDirs(){
 	    } else {
 	        info("错误：" + result.error);
 	    }
-	}, 'json', function(rep){
-		info("网络错误");
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
 	});
 }
 
@@ -508,6 +290,228 @@ $("#dirnav").on("click", ".item .icon", function(event) {
 	return false;
 });
 
+var items = [];
+
+function renderDir(item){
+	return '<div class="item dir" id="{}"><span class="icon icon-folder"></span><span class="title">{}</span></div>'.format(item._id, item.title);
+}
+
+function renderDoc(item){
+	return '<a class="item doc" id="{}" href="{}" target="_blank"><span class="icon icon-file-text2"></span><span class="title">{}</span></a>'.format(item._id, item.url, item.title);
+}
+
+function renderFile(item){
+	return '<a class="item file" id="{}" href="{}" target="_blank"><span class="icon icon-file-empty"></span><span class="title">{}</span></a>'.format(item._id, item.url, item.title);
+}
+
+function moveItems(sources, target){
+	$.post("/move", {target: target, sources: sources}, function(result){
+	    if(result.status == "ok"){
+	        info("移动成功");
+	        loadItems();
+	        loadDirs();
+	    } else {
+	        info("移动错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+function renderItems(items) {
+	$("#items").html('');
+	items.forEach(function(item, i){
+		if(item.type == 'dir'){
+			$("#items").append(renderDir(item));
+		} else if(item.type == 'doc'){
+			$("#items").append(renderDoc(item));
+		} else if(item.type == 'file'){
+			$("#items").append(renderFile(item));
+		}
+	});
+
+	$("#items .item").draggable({
+        appendTo: "body",
+        helper: "clone"
+    });
+
+    $("#items .item.dir").droppable({
+    	activeClass: "ui-state-default",
+        hoverClass: "ui-state-hover",
+        accept: ":not(.ui-sortable-helper)",
+        drop: function( event, ui ) {
+            var targetId = $(this).attr('id');
+            var sourceIds = [];
+            $("#items .item.selected").each(function(){
+            	sourceIds.push($(this).attr('id'));
+            });
+            if(sourceIds.length > 0)
+            	moveItems(sourceIds, targetId);
+        }
+    });
+}
+
+function openItem(item) {
+	if($(item).hasClass('dir')) {
+		PARENT = $(item).attr('id');
+		loadItems();
+	} else if (url = $(item).attr('href')) {
+		window.open(url, "_blank"); 
+	}
+
+}
+
+function previewItem(item) {
+	$("#preview").html(item.toString());
+}
+
+var RENAMING = false;
+
+function reName(item) {
+	RENAMING = true;
+	var oldTitle = $(item).find('span.title').html();
+	$(item).find('span.title').replaceWith('<form id="rename"><input value="{}"></form>'.format(oldTitle));
+
+	$('#items form#rename input').focus(function(){
+		 $(this).select();
+	});
+	$('#items form#rename input').focus();
+	$('#items form#rename input').blur(function(event){
+		cancelReName();
+	});
+	$('#items form#rename').submit(function(event) {
+		event.preventDefault();
+
+		var newTitle = $(this).find('input').val();
+		var target = $(item).attr("id");
+		
+		if(!target || newTitle==oldTitle)
+			return
+		
+		$.post("/rename", {target: target, title: newTitle}, function(result){
+		    if(result.status == "ok"){
+		        info("重命名成功");
+		        loadItems();
+		        if($(item).hasClass('dir'))
+		        	loadDirs();
+		    } else {
+		        info("重命名错误：" + result.error);
+		    }
+		}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		    info("错误，代码：" + XMLHttpRequest.status);
+		});
+	});
+}
+
+function cancelReName() {
+	if(RENAMING) {
+		RENAMING = false;
+		renderItems(items);
+	}
+}
+
+function loadItems() {
+	$.post("/items", {parent: PARENT}, function(result){
+	    if(result.status == "ok"){
+	    	items = result.items;
+	    	renderItems(items);
+	        info("加载成功");
+	    } else {
+	        info("加载错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+loadItems();
+
+var _clickTimer, _delay = 100;
+$("#items").on("click", ".item", function(event) {
+
+	var that = this;
+	_clickTimer = setTimeout(function(){
+		if($(that).find("form").length > 0)
+			return ;
+
+		cancelReName();
+
+		if(event.ctrlKey){
+			$(that).toggleClass("selected");
+		} else if($(that).hasClass("selected")){
+			$("#items .item").removeClass("selected");
+			reName(that);
+		} else {
+			$("#items .item").removeClass("selected");
+			$(that).addClass("selected");
+			previewItem(that);
+		}
+	}, _delay);
+
+	return false;
+});
+
+$("#items").on("dblclick", ".item", function(event) {
+	clearTimeout(_clickTimer);
+	openItem(this);
+});
+
+$(document).on("click", function() {
+	$("#items .item").removeClass("selected");
+});
+
+function delItems(targets, completely){
+	if(!completely)
+		completely = false
+
+	$.post("/delete", {targets: targets, completely: completely}, function(result){
+	    if(result.status == "ok"){
+	    	loadItems();
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+$(document).keydown(function(event){
+	if($(event.target).is('input, textarea')) {
+        return;
+    }
+
+	if(event.keyCode == 46) {
+		var targets = [];
+		$("#items .item.selected").each(function(){
+			if(tid = $(this).attr('id')){
+				targets.push(tid);
+			}
+		});
+		if(targets.length == 0)
+			return ;
+
+		event.preventDefault();
+		if(event.shiftKey) {
+			if(confirm("确认彻底删除 {} 项？".format(targets.length))) {
+			    delItems(targets, true);
+			}
+		} else {
+			if(confirm("确认删除 {} 项？".format(targets.length))) {
+			    delItems(targets);
+			}
+		}
+	} else if(event.keyCode == 13) {
+		if(item = $("#items .item.selected").first()){
+			event.preventDefault();
+			openItem(item);
+		}
+	} else if(event.keyCode == 8) {
+		event.preventDefault();
+
+		upperDir();
+	}
+});
+
 function newDir(callback){
 	$.post("/newdir", {parent: PARENT}, function(result){
 	    if(result.status == "ok"){
@@ -516,8 +520,8 @@ function newDir(callback){
 	    } else {
 	        info("错误：" + result.error);
 	    }
-	}, 'json', function(rep){
-		info("网络错误");
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
 	});
 }
 
@@ -537,8 +541,8 @@ function newDoc(callback){
 	    } else {
 	        info("错误：" + result.error);
 	    }
-	}, 'json', function(rep){
-		info("网络错误");
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
 	});
 }
 
