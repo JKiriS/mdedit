@@ -102,30 +102,42 @@ function resize(){
   var bodyHeight = $(window).height();
 
   if(! PREVIEW){
-    $("#editor").show();
-    $("#editor").outerHeight( bodyHeight );
-    $("#editor").outerWidth( bodyWidth * 0.5 );
 
-    $("#preview").outerWidth( bodyWidth * 0.49 );
-    $("#preview").outerHeight( bodyHeight );
+    mainWidth = bodyWidth * 0.9;
+    mainHeight = bodyHeight - 90;
+    $("div.main").outerWidth(mainWidth);
+    $("div.main").css("left", bodyWidth * 0.05 + "px");
+    $("div.main").css("top", "70px");
+    $("div.main").outerHeight( mainHeight );
+    $("div.main").css("margin-bottom", "0px");
+
+    $("#editor").show();
+    $("#editor").outerHeight( mainHeight );
+    $("#editor").outerWidth( mainWidth * 0.5 );
+
+    $("#preview").outerWidth( mainWidth * 0.5 );
+    $("#preview").outerHeight( mainHeight );
     
     $("#preview").removeClass("preview");
     $("#preview").css("margin-left", "0px");
-  } else {
-    $("#editor").hide();
 
+  } else {
+
+    mainWidth = bodyWidth * 0.6;
+    mainHeight = bodyHeight - 90;
+    $("div.main").outerWidth(mainWidth);
+    $("div.main").css("left", bodyWidth * 0.2 + "px");
+    $("div.main").css("top", "70px");
+    $("div.main").css("height", "");
+    $("div.main").css("margin-bottom", "20px");
+
+    $("#editor").hide();
     $("#preview").addClass("preview");
 
-    var bodyWidth = $("body").width();
     var maxWidth = 900;
     $("#preview").css("height", "100%");
-    if(bodyWidth > maxWidth){
-      $("#preview").css("width", maxWidth + "px");
-      $("#preview").css("margin-left", (bodyWidth - maxWidth)/2 + "px");
-    } else {
-      $("#preview").css("width", bodyWidth);
-      $("#preview").css("margin-left", "0px");
-    }
+    $("#preview").outerWidth( mainWidth );
+
   }
   
 }
