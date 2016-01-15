@@ -59,13 +59,9 @@ function info(msg){
   newInfo.setAttribute("class", "info");
   newInfo.innerHTML = msg;
 
-  newInfo.style.position = "fixed";
-  newInfo.style.left = "30px";
-  newInfo.style.fontSize = "15px";
-  newInfo.style.backgroundColor = "#3A9BD9";
-  newInfo.style.color = "white";
-  newInfo.style.padding = "1px 15px";
-  newInfo.style.zIndex = "2";
+  style = "position: fixed; left: 30px; font-size: 15px; background-color: #3A9BD9; color: white;padding: 3px 15px; z-index: 2; " +  
+    "box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);";
+  newInfo.setAttribute("style", style);
 
   document.body.appendChild(newInfo);
 
