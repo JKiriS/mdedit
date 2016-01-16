@@ -615,6 +615,7 @@ function newDir(callback){
 
 $(".new-dir").on("click", function(event){
 	newDir(function(item){
+		loadDirs();
 		items.push(item);
 		$("#items").append(renderDir(item));
 		rename($("#items #{}".format(item._id)));
