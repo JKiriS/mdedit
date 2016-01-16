@@ -433,12 +433,12 @@ function previewItem(item) {
 
 function selectItem(item) {
 	$(item).addClass("selected");
-	$(item).find("input.checkbox").attr("checked", "checked");
+	$(item).find("input.checkbox").prop("checked", true);
 }
 
 function cancelSelectItem(item) {
 	$(item).removeClass("selected");
-	$(item).find("input.checkbox").removeAttr("checked");
+	$(item).find("input.checkbox")..prop("checked", false);
 }
 
 var RENAMING = false;
