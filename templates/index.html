@@ -669,19 +669,22 @@ $(document).on("click", ".popover", function(event){
 	target.css("top",  $(this).offset().top + ($(this).height() + 10) + "px");
 });
 
-$(".upload form").ajaxForm({
-	dataType: 'json',
-	data: { parent: PARENT },
-	success: function(result){
-		if(result.status == "ok"){
-	    	callback("上传成功");
-	    } else {
-	        info("错误：" + result.error);
-	    }
-	}, 
-	error: function(XMLHttpRequest, textStatus, errorThrown) {
-		info("错误，代码：" + XMLHttpRequest.status);
-	}
+$(".upload form").submit(function(event){
+	event.preventDefault();
+	$(this).ajaxSubmit({
+		dataType: 'json',
+		data: { parent: PARENT },
+		success: function(result){
+			if(result.status == "ok"){
+		    	callback("上传成功");
+		    } else {
+		        info("错误：" + result.error);
+		    }
+		}, 
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			info("错误，代码：" + XMLHttpRequest.status);
+		}
+	});
 });
 
 </script>

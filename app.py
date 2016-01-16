@@ -111,14 +111,14 @@ class UploadHandler(BaseHandler):
 
             _pointIndex = title.find('.')
             if _pointIndex > 0:
-	        spath += title[_pointIndex:]
+                spath += title[_pointIndex:]
             
             os.symlink(tmpPath, '/home/jkiris/' + spath)
             url = '/' + spath
 
             fileInfo = dict(title=title,
-            	type='file',
-            	parent=parent,
+                type='file',
+                parent=parent,
                 size=self.get_argument('file.size'),
                 tmpPath=tmpPath,
                 MD5=self.get_argument('file.md5'),
