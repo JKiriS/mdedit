@@ -657,7 +657,7 @@ $(".upload form").submit(function(event){
 	event.preventDefault();
 	$(this).ajaxSubmit({
 		dataType: 'json',
-		data: { parent: PARENT, _xsrf: getCookie("_xsrf"); },
+		data: { parent: PARENT, _xsrf: getCookie("_xsrf") },
 		success: function(result){
 			if(result.status == "ok"){
 		    	info("上传成功");
