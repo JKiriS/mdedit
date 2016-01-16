@@ -527,6 +527,15 @@ $("#items").on("click", ".item", function(event) {
 	return false;
 });
 
+$("#items").on("click", ".item .checkbox", function(event) {
+
+	cancelRename();
+
+	selectItem($(this).parent(".item"));
+
+	return false;
+});
+
 
 $("#items").on("click", ".item a", function(event) {
 	openItem($(this).parent(".item"));
