@@ -103,10 +103,10 @@ function resize(){
 
   if(! PREVIEW){
 
-    mainWidth = bodyWidth * 0.9;
+    mainWidth = Math.min(Math.max(bodyWidth * 0.9, 900), bodyWidth - 20);
     mainHeight = bodyHeight - 90;
     $("div.main").outerWidth(mainWidth);
-    $("div.main").css("left", bodyWidth * 0.05 + "px");
+    $("div.main").css("left", (bodyWidth - mainWidth) / 2 + "px");
     $("div.main").css("top", "70px");
     $("div.main").outerHeight( mainHeight );
     $("div.main").css("margin-bottom", "0px");
@@ -123,10 +123,10 @@ function resize(){
 
   } else {
 
-    mainWidth = bodyWidth * 0.6;
+    mainWidth = Math.min(Math.max(bodyWidth * 0.6, 800), bodyWidth - 20);
     mainHeight = bodyHeight - 90;
     $("div.main").outerWidth(mainWidth);
-    $("div.main").css("left", bodyWidth * 0.2 + "px");
+    $("div.main").css("left", (bodyWidth - mainWidth) / 2 + "px");
     $("div.main").css("top", "70px");
     $("div.main").css("height", "");
     $("div.main").css("margin-bottom", "20px");
@@ -134,7 +134,6 @@ function resize(){
     $("#editor").hide();
     $("#preview").addClass("preview");
 
-    var maxWidth = 900;
     $("#preview").css("height", "100%");
     $("#preview").outerWidth( mainWidth );
 

@@ -104,6 +104,7 @@ class UploadHandler(BaseHandler):
         try:
             title = self.get_argument('file.name')
             tmpPath = self.get_argument('file.path')
+            parent = self.get_argument('parent', FILE_ROOT)
 
             paths = ['file',] + tmpPath.split('/')[-2:]
             spath = '/'.join(paths)
@@ -117,7 +118,7 @@ class UploadHandler(BaseHandler):
 
             fileInfo = dict(title=title,
             	type='file',
-            	parent=FILE_ROOT,
+            	parent=parent,
                 size=self.get_argument('file.size'),
                 tmpPath=tmpPath,
                 MD5=self.get_argument('file.md5'),
@@ -279,7 +280,7 @@ class NewDirHandler(BaseHandler):
 class NewDocHandler(BaseHandler):
     @user_authenticated
     def post(self):
-        parent = self.get_argument('parent', ROOT)
+        parent = self.get_argument('parent', DOC_ROOT)
         title = self.get_argument('title', '新建文档')
         aid = ObjectId()
         doc = dict(_id=aid, title=title, parent=parent, type='doc', content='',

@@ -6,35 +6,75 @@
 	<script type="text/javascript" src="/static/js/jquery-1.11.1.min.js"></script>
 	<script type="text/javascript" src="/static/js/jquery-ui.js"></script>
 	<script type="text/javascript" src="/static/js/util.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.form.js"></script>
 	<style type="text/css">
+
+		.chips {
+			display: inline-block;
+			padding: 0;
+			background-color: #FAFAFA;
+			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+		}
+
+		.chips > .title {
+			height: 36px;
+			margin-bottom: 10px;
+			padding: 30px 10px;
+			padding-left: 30px;
+			background-color: #3F51B5;
+		}
+
+		.chips > .content {
+			margin-left: 20px;
+		}
+
+		.pop-window {
+			display: none;
+			position: absolute;
+			background-color: #FAFAFA;
+			padding: 20px;
+			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+		}
 
 		.main {
 			margin-top: 20px;
-			margin-left: 2%;
+			margin-left: 5%;
 			width: 90%;
 		}
 
 		.items {
 			width: 40%;
 			display: inline-block;
-			height: 500px;
+			height: 800px;
+			margin-right: 20px;
 			float: left;
-			padding-left: 10px; 
-		}
-
-		.items .item-tools {
-			margin-bottom: 10px;
 		}
 
 		.items .item-tools .tool {
 			display: inline-block;
-			margin-right: 5px;
 			cursor: pointer;
+			height: 36px;
+      		width: 36px;
+      		text-align: center;
 		}
 
-		.items .item-tools .tool .icon {
-			margin-right: 3px;
+		.items .item-tools .tool.plate {
+
 		}
+
+		.items .item-tools .tool.circle {
+			background-color: rgb(255, 255, 255);
+			border-radius: 50%;
+			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+			float: right;
+			margin-right: 20px;
+		}
+
+		.items .item-tools .tool span {
+	      display: inline-block;
+	      margin-top: 8px;
+	      font-size: 20px;
+	    }
 
 		.items .item-tools .upload{
 			margin-left: 5px;
@@ -45,19 +85,31 @@
 		#items .item{
 			display: block;
 			text-decoration: none;
-			margin: 3px 0px;
-			padding: 2px 0px;
-			cursor: default;
+			margin: 0px;
+			padding: 10px 0px;
+			height: 20px;
+			font-size: 20px;
+		}
+
+		#items .item input.checkbox{
+			margin-right: 20px;
+			height: 15px;
+		}
+
+		#items .item span.icon {
+			margin-right: 10px;
+		}
+
+		#items .item a{
+			text-decoration: none;
 		}
 
 		#items .item:hover{
-			border: 1px solid silver;
-			background-color: silver;
+			background-color: #EEEEEE;
 		}
 
 		#items .item.selected{
-			border: 1px solid silver;
-			background-color: blue;
+			background-color: #F5F5F5;
 		}
 
 		#items form {
@@ -68,25 +120,30 @@
 			margin-right: 3px;
 		}
 
-		.preview {
-			width: 30%;
-			display: inline-block;
-			height: 500px;
-			float: left;
-		}
-
 		.dirnav {
-			width: 15%;
-			display: inline-block;
-			height: 500px;
+			width: 20%;
+			height: 800px;
 			float: left;
 			overflow: auto;
 			margin-right: 20px;
 		}
 
-		#dirnav .item{
-			padding: 3px 5px;
-    		font-size: 20px;
+		.dirnav .title {
+			margin-bottom: 10px;
+			height: 36px;
+		}
+
+		#dirnav .item {
+    		display: block;
+			text-decoration: none;
+			margin: 0px;
+			padding: 10px 0px;
+			height: 20px;
+			font-size: 20px;
+		}
+
+		#dirnav .item span.icon{
+			border-radius: 50%;
 		}
 
 		#dirnav .item.shrinked{
@@ -94,49 +151,58 @@
 		}
 
 		#dirnav .item:hover{
-			border: 1px solid silver;
-			background-color: silver;
+			background-color: #EEEEEE;
 		}
 
 		#dirnav .item.active{
-			border: 1px solid silver;
-			background-color: blue;
+			background-color: #F5F5F5;
 		}
 
 		#dirnav .item .icon {
-			margin-right: 5px;
+			margin-right: 10px;
 		}
 
 		.ui-state-hover {
 			background-color: pink;
 		}
+
+		.preview {
+			width: 30%;
+			height: 800px;
+			float: left;
+			overflow: auto;
+			margin-right: 20px;
+		}
+
 	</style>
 </head>
 <body>
 	{% module xsrf_form_html() %}
 	<div class="main">
-		<div class="dirnav">
-			<div id="dirnav">&nbsp;</div>
+		<div class="chips dirnav">
+			<div class="title">&nbsp;</div>
+			<div class="content" id="dirnav">&nbsp;</div>
 		</div>
-		<div class="items">
-			<div class="current-dir"></div>
-			<div class="item-tools">
-				<div class="tool upper-dir">
-					<span class="icon icon-undo2"></span>上一级
+		<div class="chips items">
+			<div class="title item-tools">
+				<div class="tool upper-dir" >
+					<span class="icon icon-undo2"></span>
 				</div>
-				<div class="tool new-dir">
-					<span class="icon icon-folder-plus"></span>新归档
-				</div>				
-				<div class="tool new-doc">
-					<span class="icon icon-file-empty"></span>新文档
+				
+				<div class="tool circle upload-file popover" target="#upload">
+					<span class="icon icon-cloud-upload"></span>
 				</div>
-				<div class="tool remove-items">
-					<span class="icon icon-bin"></span>删除
+				<div class="tool circle remove-items">
+					<span class="icon icon-bin"></span>
 				</div>
-				<div class="tool upload-file">
-					<span class="icon icon-cloud-upload"></span>上传
+				<div class="tool circle new-doc">
+					<span class="icon icon-file-empty"></span>
 				</div>
-				<div class="tool upload" style="display: none">
+				<div class="tool circle new-dir">
+					<span class="icon icon-folder-plus"></span>
+				</div>
+
+				<div class="upload pop-window" id="upload">
 					<form name="upload" method="POST" enctype="multipart/form-data" action="/upload">
 					    {% module xsrf_form_html() %}
 					    <input type="file" name="file" required>
@@ -144,10 +210,11 @@
 					  </form>
 				</div>
 			</div>
-			<div id="items">&nbsp;</div>
+			<div class="content" id="items">&nbsp;</div>
 		</div>
-		<div class="preview">
-			<div id="preview">&nbsp;</div>
+		<div class="chips preview">
+			<div class="title">&nbsp;</div>
+			<div class="content" id="preview">&nbsp;</div>
 		</div>
 	</div>
 </body>
@@ -293,15 +360,15 @@ $("#dirnav").on("click", ".item .icon", function(event) {
 var items = [];
 
 function renderDir(item){
-	return '<div class="item dir" id="{}"><span class="icon icon-folder"></span><span class="title">{}</span></div>'.format(item._id, item.title);
+	return '<div class="item dir" id="{}"><input type="checkbox" class="checkbox"><span class="icon icon-folder"></span><a class="title" href="javascript:void(0)">{}</a></div>'.format(item._id, item.title);
 }
 
 function renderDoc(item){
-	return '<a class="item doc" id="{}" href="{}" target="_blank"><span class="icon icon-file-text2"></span><span class="title">{}</span></a>'.format(item._id, item.url, item.title);
+	return '<div class="item doc" id="{}"><input type="checkbox" class="checkbox"><span class="icon icon-file-text2"></span><a class="title" href="{}" target="_blank">{}</a></div>'.format(item._id, item.url, item.title);
 }
 
 function renderFile(item){
-	return '<a class="item file" id="{}" href="{}" target="_blank"><span class="icon icon-file-empty"></span><span class="title">{}</span></a>'.format(item._id, item.url, item.title);
+	return '<div class="item file" id="{}"><input type="checkbox" class="checkbox"><span class="icon icon-file-empty"></span><a class="title" href="{}" target="_blank">{}</a></div>'.format(item._id, item.url, item.title);
 }
 
 function moveItems(sources, target){
@@ -355,29 +422,38 @@ function openItem(item) {
 	if($(item).hasClass('dir')) {
 		PARENT = $(item).attr('id');
 		loadItems();
-	} else if (url = $(item).attr('href')) {
+	} else if (url = $(item).find("a").attr('href')) {
 		window.open(url, "_blank"); 
 	}
-
 }
 
 function previewItem(item) {
 	$("#preview").html(item.toString());
 }
 
+function selectItem(item) {
+	$(item).addClass("selected");
+	$(item).find("input.checkbox").attr("checked", "checked");
+}
+
+function cancelSelectItem(item) {
+	$(item).removeClass("selected");
+	$(item).find("input.checkbox").removeAttr("checked");
+}
+
 var RENAMING = false;
 
-function reName(item) {
+function rename(item) {
 	RENAMING = true;
-	var oldTitle = $(item).find('span.title').html();
-	$(item).find('span.title').replaceWith('<form id="rename"><input value="{}"></form>'.format(oldTitle));
+	var oldTitle = $(item).find('a.title').html();
+	$(item).find('a.title').replaceWith('<form id="rename"><input value="{}"></form>'.format(oldTitle));
 
 	$('#items form#rename input').focus(function(){
 		 $(this).select();
 	});
 	$('#items form#rename input').focus();
 	$('#items form#rename input').blur(function(event){
-		cancelReName();
+		cancelRename();
 	});
 	$('#items form#rename').submit(function(event) {
 		event.preventDefault();
@@ -403,7 +479,7 @@ function reName(item) {
 	});
 }
 
-function cancelReName() {
+function cancelRename() {
 	if(RENAMING) {
 		RENAMING = false;
 		renderItems(items);
@@ -426,38 +502,41 @@ function loadItems() {
 
 loadItems();
 
-var _clickTimer, _delay = 100;
 $("#items").on("click", ".item", function(event) {
 
-	var that = this;
-	_clickTimer = setTimeout(function(){
-		if($(that).find("form").length > 0)
-			return ;
+	if($(this).find("#rename").length > 0)
+		return ;
 
-		cancelReName();
+	cancelRename();
 
-		if(event.ctrlKey){
-			$(that).toggleClass("selected");
-		} else if($(that).hasClass("selected")){
-			$("#items .item").removeClass("selected");
-			reName(that);
-		} else {
-			$("#items .item").removeClass("selected");
-			$(that).addClass("selected");
-			previewItem(that);
-		}
-	}, _delay);
+	if(event.ctrlKey){
+		selectItem(this);
+	} else if($(this).hasClass("selected")){
+		$("#items .item.selected").each(function(){
+			cancelSelectItem(this);
+		}); 
+		rename(this);
+	} else {
+		$("#items .item.selected").each(function(){
+			cancelSelectItem(this);
+		}); 
+		selectItem(this);
+		previewItem(this);
+	}
 
 	return false;
 });
 
-$("#items").on("dblclick", ".item", function(event) {
-	clearTimeout(_clickTimer);
-	openItem(this);
+
+$("#items").on("click", ".item a", function(event) {
+	openItem($(this).parent(".item"));
+	return false;
 });
 
 $(document).on("click", function() {
-	$("#items .item").removeClass("selected");
+	$("#items .item").each(function(){
+		cancelSelectItem(this);
+	}); 
 });
 
 function delItems(targets, completely){
@@ -580,8 +659,29 @@ $(".remove-items").on("click", function(event){
 	}
 });
 
-$(".upload-file").on("click", function(event){
-	$(".tool.upload").toggle();
+$(document).on("click", ".popover", function(event){
+	var targetId = $(this).attr('target');
+	var target = $(targetId);
+	if(! target)
+		return;
+	target.toggle();
+	target.css("left", $(this).offset().left - target.width() + "px");
+	target.css("top",  $(this).offset().top + ($(this).height() + 10) + "px");
+});
+
+$(".upload form").ajaxForm({
+	dataType: 'json',
+	data: { parent: PARENT },
+	success: function(result){
+		if(result.status == "ok"){
+	    	callback("上传成功");
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 
+	error: function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	}
 });
 
 </script>
