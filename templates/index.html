@@ -177,6 +177,7 @@
 
 	<div class="pop-window upload" id="upload">
 		<div class="pop-window-content">
+			{% module xsrf_form_html() %}
 			<form name="upload" method="POST" enctype="multipart/form-data" action="/upload">
 			    <input type="file" name="file" required>
 			    <input type="submit" name="submit">
