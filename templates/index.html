@@ -438,7 +438,7 @@ function selectItem(item) {
 
 function cancelSelectItem(item) {
 	$(item).removeClass("selected");
-	$(item).find("input.checkbox")..prop("checked", false);
+	$(item).find("input.checkbox").prop("checked", false);
 }
 
 var RENAMING = false;
@@ -588,6 +588,7 @@ $(document).keydown(function(event){
 			    delItems(targets);
 			}
 		}
+		loadDirs();
 	} else if(event.keyCode == 13) {
 		if(item = $("#items .item.selected").first()){
 			event.preventDefault();
@@ -667,6 +668,7 @@ $(".remove-items").on("click", function(event){
 	if(targets.length > 0 && confirm("确认删除 {} 项？".format(targets.length))) {
 	    delItems(targets);
 	}
+	loadDirs();
 });
 
 $(document).on("click", ".popover", function(event){
