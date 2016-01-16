@@ -617,7 +617,7 @@ $(".new-dir").on("click", function(event){
 	newDir(function(item){
 		items.push(item);
 		$("#items").append(renderDir(item));
-		reName($("#items #{}".format(item._id)));
+		rename($("#items #{}".format(item._id)));
 	});
 });
 
@@ -638,7 +638,7 @@ $(".new-doc").on("click", function(event){
 	newDoc(function(item){
 		items.push(item);
 		$("#items").append(renderDoc(item));
-		reName($("#items #{}".format(item._id)));
+		rename($("#items #{}".format(item._id)));
 	});
 });
 
