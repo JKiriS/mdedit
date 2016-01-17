@@ -104,7 +104,10 @@
 		.ui-state-hover {
 			background-color: pink;
 		}
-
+		
+		.checkbox {
+			color: #EEE;
+		}
 	</style>
 </head>
 <body>
@@ -309,15 +312,15 @@ $("#dirnav").on("click", ".item .icon", function(event) {
 var items = [];
 
 function renderDir(item){
-	return '<div class="item dir" id="{}"><input type="checkbox" class="checkbox"><span class="icon icon-folder"></span><a class="title" href="javascript:void(0)" title="{}">{}</a></div>'.format(item._id, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
+	return '<div class="item dir" id="{}"><span class="checkbox"></span><span class="icon icon-folder"></span><a class="title" href="javascript:void(0)" title="{}">{}</a></div>'.format(item._id, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
 }
 
 function renderDoc(item){
-	return '<div class="item doc" id="{}"><input type="checkbox" class="checkbox"><span class="icon icon-file-text2"></span><a class="title" href="{}" target="_blank" title="{}">{}</a></div>'.format(item._id, item.url, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
+	return '<div class="item doc" id="{}"><span class="checkbox"></span><span class="icon icon-file-text2"></span><a class="title" href="{}" target="_blank" title="{}">{}</a></div>'.format(item._id, item.url, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
 }
 
 function renderFile(item){
-	return '<div class="item file" id="{}"><input type="checkbox" class="checkbox"><span class="icon icon-file-empty"></span><a class="title" href="{}" title="{}" target="_blank">{}</a></div>'.format(item._id, item.url, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
+	return '<div class="item file" id="{}"><span class="checkbox"></span><span class="icon icon-file-empty"></span><a class="title" href="{}" title="{}" target="_blank">{}</a></div>'.format(item._id, item.url, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
 }
 
 function moveItems(sources, target){
@@ -382,12 +385,12 @@ function previewItem(item) {
 
 function selectItem(item) {
 	$(item).addClass("selected");
-	$(item).find("input.checkbox").prop("checked", true);
+	$(item).find(".checkbox").addClass("checked");
 }
 
 function cancelSelectItem(item) {
 	$(item).removeClass("selected");
-	$(item).find("input.checkbox").prop("checked", false);
+	$(item).find(".checkbox").removeClass("checked");
 }
 
 var RENAMING = false;
@@ -467,7 +470,10 @@ $("#items").on("click", ".item", function(event) {
 	cancelRename();
 
 	if(event.ctrlKey){
-		selectItem(this);
+		if($(this).hasClass("selected"))
+			cancelSelectItem(this);
+		else
+			selectItem(this);
 	} else if($(this).hasClass("selected")){
 		$("#items .item.selected").each(function(){
 			cancelSelectItem(this);
@@ -478,7 +484,6 @@ $("#items").on("click", ".item", function(event) {
 			cancelSelectItem(this);
 		}); 
 		selectItem(this);
-		previewItem(this);
 	}
 
 	return false;
@@ -488,7 +493,10 @@ $("#items").on("click", ".item .checkbox", function(event) {
 
 	cancelRename();
 
-	selectItem($(this).parent(".item"));
+	if($(this).hasClass("checked"))
+		cancelSelectItem($(this).parent(".item"));
+	else
+		selectItem($(this).parent(".item"));
 
 	return false;
 });

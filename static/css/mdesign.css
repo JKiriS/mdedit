@@ -120,3 +120,25 @@
 	box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
 	z-index: 2;
 }
+
+.checkbox:before {
+	content: '\2714';
+}
+
+.checkbox {
+	font-size: 18px;
+	color: rgba(255, 255, 255, 0);
+	padding-left: 2px;
+	padding-right: 2px;
+	padding-bottom: 1px;
+	border: 2px solid #6D6D6D;
+	border-radius: 3px;
+	margin-right: 20px;
+	margin-bottom: 5px;
+}
+
+.checkbox.checked {
+	background-color: #009688;
+	color: #EEEEEE;
+	border-color: #009688;
+}
