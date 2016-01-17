@@ -151,19 +151,19 @@
   }
 
   function save(){
-    var content = editor.getValue();
+    var content = mdeditor.getText();
     var title = document.title;
     if(title.trim() == ""){
       info("错误：标题为空");
       return ;
     }
-    if(! CHANGED){
+    if(! mdeditor.CHANGED){
       return ;
     }
     
     $.post("", {title: title, content: content}, function(result){
       if(result.status == "ok"){
-        CHANGED = false;
+        mdeditor.CHANGED = false;
         info("保存成功");
         if(result.redirect)
           window.location.href = result.redirect;
@@ -180,7 +180,7 @@
     var title = document.getElementById("title").value;
     document.title = title;
 
-    CHANGED = true;
+    mdeditor.CHANGED = true;
   });
 
   function goToIndex(){
@@ -194,56 +194,15 @@
   }
 
   function preview(){
-    PREVIEW = !PREVIEW;
+    mdeditor.PREVIEW = !mdeditor.PREVIEW;
     resize();
   }
 
   // hot key
-  editor.commands.addCommand({
-      name: 'save',
-      bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
-      exec: function(editor) {
-        save();
-      },
-      readOnly: false 
-  });
-
-  editor.commands.addCommand({
-      name: 'new',
-      bindKey: {win: 'Ctrl-O',  mac: 'Command-O'},
-      exec: function(editor) {
-        newArticle();
-      },
-      readOnly: false 
-  });
-
-  editor.commands.addCommand({
-      name: 'preview',
-      bindKey: {win: 'Ctrl-P',  mac: 'Command-P'},
-      exec: function(editor) {
-        preview();
-      },
-      readOnly: false,
-      global: true
-  });
-
-  $(document).keydown(function(event){
-    if(event.ctrlKey && event.keyCode == 'P'.charCodeAt(0)){
-      event.preventDefault();
-
-      preview();
-    }
-    else if(event.ctrlKey && event.keyCode == 'I'.charCodeAt(0)){
-      event.preventDefault();
-
-      goToIndex();
-    }
-    else if(event.ctrlKey && event.keyCode == 'O'.charCodeAt(0)){
-      event.preventDefault();
-
-      newArticle();
-    }
-  });
+  mdeditor.addCommand('save', 'S', save, true);
+  mdeditor.addCommand('open', 'O', newArticle, true);
+  mdeditor.addCommand('preview', 'P', preview, true);
+  mdeditor.addCommand('index', 'I', goToIndex, true);
 
 </script>
 </html>

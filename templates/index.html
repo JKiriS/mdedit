@@ -176,27 +176,22 @@
 </body>
 <script type="text/javascript">
 
-var PARENT = "{{ parent }}";
-var ROOT = "{{ ROOT }}";
-
-var dis = [];
-
-
-function renderNavDir(dir, level) {
-	if(level == 0)
-		return '<div class="item" id="{}" pid="{}"><span class="icon icon-folder"></span><span class="title">{}</span></div>'.format(dir._id, dir.parent, dir.title);
-	else
-		return '<div class="item shrinked" id="{}" pid="{}">{}<span class="icon icon-folder"></span><span class="title">{}</span></div>'.format(dir._id, dir.parent, '&nbsp;'.repeat(level), dir.title);
+function NavDirManager(eid) {
+	this.dirs = [];
+	this.ROOT = null;
+	this.eid = eid;
+	this.im = null;
 }
 
-function _renderDirs(dirs) {
+NavDirManager.prototype._renderDirs = function(dirs) {
 	var level = 0;
-	$("#dirnav").html('');
+	var that = this;
+	$(that.eid).html('');
 
 	_curLevelDirs = [];
 	dirs.forEach(function(dir, i) {
-		if(dir.parent == ROOT){
-			$("#dirnav").append(renderNavDir(dir, level));
+		if(dir.parent == that.ROOT){
+			$(that.eid).append(that.renderNavDir(dir, level));
 			_curLevelDirs.push(dir._id);
 		}
 	});
@@ -209,11 +204,11 @@ function _renderDirs(dirs) {
 		level += 1;
 		_temp = [];
 		_curLevelDirs.forEach(function(pdir, pi){
-			last = $("#dirnav #{}".format(pdir));
+			last = $("{} #{}".format(that.eid, pdir));
 			dirs.forEach(function(dir, i) {
 				if(dir.parent == pdir){
-					$(last).after(renderNavDir(dir, level));
-					last = $("#dirnav #{}".format(dir._id));
+					$(last).after(that.renderNavDir(dir, level));
+					last = $("{} #{}".format(that.eid, dir._id));
 					_temp.push(dir._id);
 				}
 			})
@@ -221,62 +216,73 @@ function _renderDirs(dirs) {
 
 		_curLevelDirs = _temp;
 	}
+};
+
+
+NavDirManager.prototype.renderNavDir = function(dir, level) {
+	if(level == 0)
+		return '<div class="item" id="{}" pid="{}"><span class="icon icon-folder"></span><span class="title" title="{}">{}</span></div>'.format(dir._id, dir.parent, dir.title, dir.title.length > 20 ? dir.title.substr(0, 20) + '...' : dir.title);
+	else
+		return '<div class="item shrinked" id="{}" pid="{}">{}<span class="icon icon-folder"></span><span class="title" title="{}">{}</span></div>'.format(dir._id, dir.parent, '&nbsp;'.repeat(level), dir.title, dir.title.length > 20 ? dir.title.substr(0, 20) + '...' : dir.title);
 }
 
-function renderDirs(dirs) {
-	_renderDirs(dirs);
-	$("#dirnav .item").droppable({
+
+NavDirManager.prototype.renderDirs = function() {
+	var that = this;
+	that._renderDirs(that.dirs);
+	$("{} .item".format(that.eid)).droppable({
     	activeClass: "ui-state-default",
         hoverClass: "ui-state-hover",
         accept: ":not(.ui-sortable-helper)",
         drop: function( event, ui ) {
             var targetId = $(this).attr('id');
             var sourceIds = [];
-            $("#items .item.selected").each(function(){
+            $("{} .item.selected".format(that.im.eid)).each(function(){
             	sourceIds.push($(this).attr('id'));
             });
-            if(sourceIds.length > 0)
-            	moveItems(sourceIds, targetId);
+            if(sourceIds.length > 0 && that.im)
+            	that.im.moveItems(sourceIds, targetId);
         }
     });
 }
 
-function expandDir(dir) {
+NavDirManager.prototype.expandDir = function(dir) {
 	var did = $(dir).attr('id');
 	$(dir).find('span.icon').toggleClass('icon-folder');
 	$(dir).find('span.icon').toggleClass('icon-folder-open');
-	$('#dirnav .item[pid="'+did+'"]').removeClass('shrinked');
+	$('{} .item[pid="{}"]'.format(this.eid, did)).removeClass('shrinked');
 }
 
 
-function shrinkDir(dir) {
+NavDirManager.prototype.shrinkDir = function(dir) {
 	var did = $(dir).attr('id');
 	$(dir).find('span.icon').toggleClass('icon-folder-open');
 	$(dir).find('span.icon').toggleClass('icon-folder');
-	$('#dirnav .item[pid="'+did+'"]').addClass('shrinked');
+	$('{} .item[pid="{}"]'.format(this.eid, did)).addClass('shrinked');
 }
 
-function activeDir(did, cur) {
+NavDirManager.prototype.activeDir = function(did, cur) {
 	if(!did)
 		return ;
 	if(cur == null)
 		cur = true;
 
-	var dir = $('#dirnav .item[id="'+did+'"]').first();
+	var dir = $('{} .item[id="{}"]'.format(this.eid, did)).first();
 	if(dir) {
 		if(cur)
 			dir.addClass('active');
 		else
-			expandDir(dir);
-		activeDir(dir.attr('pid'), false);
+			this.expandDir(dir);
+		this.activeDir(dir.attr('pid'), false);
 	}
 }
 
-function loadDirs(){
+NavDirManager.prototype.loadDirs = function(){
+	var that = this;
 	$.post("/dirs", {}, function(result){
 	    if(result.status == "ok"){
-	    	dirs = result.dirs;
-	    	renderDirs(result.dirs);
+	    	that.dirs = result.dirs;
+	    	that.renderDirs();
 
 			// activeDir(result.curDir);
 
@@ -289,46 +295,66 @@ function loadDirs(){
 	});
 }
 
-loadDirs();
+function ItemManager(eid) {
+	this.eid = eid;
+	this.PARENT = null;
+	this.items = [];
+	this.navdir = null;
+}
 
-$("#dirnav").on("click", ".item", function(event) {
-	PARENT = $(this).attr('id');
-	loadItems();
-
-	return false;
-});
-
-
-$("#dirnav").on("click", ".item .icon", function(event) {
-	var parent = $(this).parents('.item').first();
-	if($(this).hasClass('icon-folder'))
-		expandDir(parent);
-	else
-		shrinkDir(parent);
-
-	return false;
-});
-
-var items = [];
-
-function renderDir(item){
+ItemManager.prototype.renderDir = function(item){
 	return '<div class="item dir" id="{}"><span class="checkbox"></span><span class="icon icon-folder"></span><a class="title" href="javascript:void(0)" title="{}">{}</a></div>'.format(item._id, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
 }
 
-function renderDoc(item){
+ItemManager.prototype.renderDoc = function(item){
 	return '<div class="item doc" id="{}"><span class="checkbox"></span><span class="icon icon-file-text2"></span><a class="title" href="{}" target="_blank" title="{}">{}</a></div>'.format(item._id, item.url, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
 }
 
-function renderFile(item){
+ItemManager.prototype.renderFile = function(item){
 	return '<div class="item file" id="{}"><span class="checkbox"></span><span class="icon icon-file-empty"></span><a class="title" href="{}" title="{}" target="_blank">{}</a></div>'.format(item._id, item.url, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
 }
 
-function moveItems(sources, target){
+ItemManager.prototype.renderItems = function() {
+	var that = this;
+	$(that.eid).html('');
+	that.items.forEach(function(item, i){
+		if(item.type == 'dir'){
+			$(that.eid).append(that.renderDir(item));
+		} else if(item.type == 'doc'){
+			$(that.eid).append(that.renderDoc(item));
+		} else if(item.type == 'file'){
+			$(that.eid).append(that.renderFile(item));
+		}
+	});
+
+	$("{} .item".format(that.eid)).draggable({
+        appendTo: "body",
+        helper: "clone"
+    });
+
+    $("{} .item.dir".format(that.eid)).droppable({
+    	activeClass: "ui-state-default",
+        hoverClass: "ui-state-hover",
+        accept: ":not(.ui-sortable-helper)",
+        drop: function( event, ui ) {
+            var targetId = $(this).attr('id');
+            var sourceIds = [];
+            $("{} .item.selected".format(that.eid)).each(function(){
+            	sourceIds.push($(this).attr('id'));
+            });
+            if(sourceIds.length > 0)
+            	that.moveItems(sourceIds, targetId);
+        }
+    });
+}
+
+ItemManager.prototype.moveItems = function(sources, target){
+	var that = this;
 	$.post("/move", {target: target, sources: sources}, function(result){
 	    if(result.status == "ok"){
 	        info("移动成功");
-	        loadItems();
-	        loadDirs();
+	        that.loadItems();
+	        that.navdir.loadDirs();
 	    } else {
 	        info("移动错误：" + result.error);
 	    }
@@ -337,77 +363,46 @@ function moveItems(sources, target){
 	});
 }
 
-function renderItems(items) {
-	$("#items").html('');
-	items.forEach(function(item, i){
-		if(item.type == 'dir'){
-			$("#items").append(renderDir(item));
-		} else if(item.type == 'doc'){
-			$("#items").append(renderDoc(item));
-		} else if(item.type == 'file'){
-			$("#items").append(renderFile(item));
-		}
-	});
-
-	$("#items .item").draggable({
-        appendTo: "body",
-        helper: "clone"
-    });
-
-    $("#items .item.dir").droppable({
-    	activeClass: "ui-state-default",
-        hoverClass: "ui-state-hover",
-        accept: ":not(.ui-sortable-helper)",
-        drop: function( event, ui ) {
-            var targetId = $(this).attr('id');
-            var sourceIds = [];
-            $("#items .item.selected").each(function(){
-            	sourceIds.push($(this).attr('id'));
-            });
-            if(sourceIds.length > 0)
-            	moveItems(sourceIds, targetId);
-        }
-    });
-}
-
-function openItem(item) {
+ItemManager.prototype.openItem = function(item) {
 	if($(item).hasClass('dir')) {
-		PARENT = $(item).attr('id');
-		loadItems();
+		this.PARENT = $(item).attr('id');
+		this.loadItems();
 	} else if (url = $(item).find("a").attr('href')) {
 		window.open(url, "_blank"); 
 	}
 }
 
-function previewItem(item) {
-	$("#preview").html(item.toString());
+
+ItemManager.prototype.toggleSelectItem = function(item) {
+	if($(item).hasClass('selected')){
+		$(item).removeClass("selected");
+		$(item).find(".checkbox").removeClass("checked");
+	} else {
+		$(item).addClass("selected");
+		$(item).find(".checkbox").addClass("checked");
+	}
 }
 
-function selectItem(item) {
-	$(item).addClass("selected");
-	$(item).find(".checkbox").addClass("checked");
+ItemManager.prototype.cancelSelect = function() {
+	var that = this;
+	$("{} .item.selected".format(that.eid)).each(function(){
+		that.toggleSelectItem(this);
+	}); 
 }
 
-function cancelSelectItem(item) {
-	$(item).removeClass("selected");
-	$(item).find(".checkbox").removeClass("checked");
-}
-
-var RENAMING = false;
-
-function rename(item) {
-	RENAMING = true;
+ItemManager.prototype.rename = function(item) {
+	var that = this;
 	var oldTitle = $(item).find('a.title').html();
 	$(item).find('a.title').replaceWith('<form id="rename"><input value="{}"></form>'.format(oldTitle));
 
-	$('#items form#rename input').focus(function(){
+	$('{} form#rename input'.format(that.eid)).focus(function(){
 		 $(this).select();
 	});
-	$('#items form#rename input').focus();
-	$('#items form#rename input').blur(function(event){
-		cancelRename();
+	$('{} form#rename input'.format(that.eid)).focus();
+	$('{} form#rename input'.format(that.eid)).blur(function(event){
+		that.cancelRename();
 	});
-	$('#items form#rename').submit(function(event) {
+	$('{} form#rename'.format(that.eid)).submit(function(event) {
 		event.preventDefault();
 
 		var newTitle = $(this).find('input').val();
@@ -419,9 +414,9 @@ function rename(item) {
 		$.post("/rename", {target: target, title: newTitle}, function(result){
 		    if(result.status == "ok"){
 		        info("重命名成功");
-		        loadItems();
+		        that.loadItems();
 		        if($(item).hasClass('dir'))
-		        	loadDirs();
+		        	that.navdir.loadDirs();
 		    } else {
 		        info("重命名错误：" + result.error);
 		    }
@@ -431,26 +426,26 @@ function rename(item) {
 	});
 }
 
-function cancelRename() {
-	if(RENAMING) {
-		RENAMING = false;
-		renderItems(items);
+ItemManager.prototype.cancelRename = function() {
+	if($("{} #rename".format(this.eid)).length > 0) {
+		this.renderItems();
 	}
 }
 
-function loadItems() {
-	$.post("/items", {parent: PARENT}, function(result){
+ItemManager.prototype.loadItems = function() {
+	var that = this;
+	$.post("/items", {parent: that.PARENT}, function(result){
 	    if(result.status == "ok"){
-	    	items = result.items;
+	    	that.items = result.items;
 
-	    	var name = $("#dirnav .item#{}".format(PARENT)).find('.title').html();
+	    	var name = $("{} .item#{}".format(that.navdir.eid, that.PARENT)).find('.title').html();
 
 	    	if(name)
 				$(".chips.items").find('.chips-title').html(name.length > 9? name.substr(0, 9) + '...': name);
 			else
 				$(".chips.items").find('.chips-title').html("");
 
-	    	renderItems(items);
+	    	that.renderItems();
 	        info("加载成功");
 	    } else {
 	        info("加载错误：" + result.error);
@@ -460,180 +455,189 @@ function loadItems() {
 	});
 }
 
-loadItems();
+ItemManager.prototype.delItems = function(completely){
+	var that = this;
+	if(completely == null )
+		completely = false
+
+	var targets = [];
+	$("{} .item.selected".format(that.eid)).each(function(){
+		if(tid = $(this).attr('id')){
+			targets.push(tid);
+		}
+	});
+	if(targets.length == 0)
+		return ;
+
+	if(completely) {
+		if(! confirm("确认彻底删除 {} 项？".format(targets.length)))
+			return ;
+	} else {
+		if(! confirm("确认删除 {} 项？".format(targets.length)))
+			return ;
+	}
+
+	$.post("/delete", {targets: targets, completely: completely}, function(result){
+	    if(result.status == "ok"){
+	    	that.loadItems();
+	    	that.navdir.loadDirs();
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+ItemManager.prototype.newDir = function(callback){
+	var that = this;
+	$.post("/newdir", {parent: this.PARENT}, function(result){
+	    if(result.status == "ok"){
+	    	that.navdir.loadDirs();
+			that.items.push(result.item);
+			$(that.eid).append(that.renderDir(result.item));
+			that.rename($("{} #{}".format(that.eid, result.item._id)));
+
+	    	if(callback)
+	    		callback(result.item);
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+ItemManager.prototype.newDoc = function(callback){
+	var that = this;
+	$.post("/newdoc", {parent: this.PARENT}, function(result){
+	    if(result.status == "ok"){
+	    	that.items.push(result.item);
+			$(that.eid).append(that.renderDoc(result.item));
+			im.rename($("{} #{}".format(that.eid, result.item._id)));
+
+	    	if(callback)
+	    		callback(result.item);
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+ItemManager.prototype.upperDir = function() {
+	if(parent = $("#dirnav #{}".format(this.PARENT))){
+		if(pparent = parent.attr('pid')){
+			this.PARENT = pparent;
+			this.loadItems();
+		}
+	}
+}
+
+var navdir = new NavDirManager("#dirnav");
+navdir.ROOT = "{{ ROOT }}";
+navdir.loadDirs();
+
+var im = new ItemManager("#items");
+im.PARENT = "{{ parent }}";
+im.navdir = navdir;
+navdir.im = im;
+im.loadItems();
+
+
+$("#dirnav").on("click", ".item", function(event) {
+	im.PARENT = $(this).attr('id');
+	im.loadItems();
+
+	return false;
+});
+
+
+$("#dirnav").on("click", ".item .icon", function(event) {
+	var parent = $(this).parents('.item').first();
+	if($(this).hasClass('icon-folder'))
+		navdir.expandDir(parent);
+	else
+		navdir.shrinkDir(parent);
+
+	return false;
+});
 
 $("#items").on("click", ".item", function(event) {
 
 	if($(this).find("#rename").length > 0)
 		return ;
 
-	cancelRename();
+	im.cancelRename();
 
 	if(event.ctrlKey){
-		if($(this).hasClass("selected"))
-			cancelSelectItem(this);
-		else
-			selectItem(this);
+		im.toggleSelectItem(this);
 	} else if($(this).hasClass("selected")){
-		$("#items .item.selected").each(function(){
-			cancelSelectItem(this);
-		}); 
-		rename(this);
+		im.cancelSelect();
+		im.rename(this);
 	} else {
-		$("#items .item.selected").each(function(){
-			cancelSelectItem(this);
-		}); 
-		selectItem(this);
+		im.cancelSelect();
+		im.toggleSelectItem(this);
 	}
 
 	return false;
 });
 
 $("#items").on("click", ".item .checkbox", function(event) {
-
-	cancelRename();
-
-	if($(this).hasClass("checked"))
-		cancelSelectItem($(this).parent(".item"));
-	else
-		selectItem($(this).parent(".item"));
-
+	im.cancelRename();
+	im.toggleSelectItem($(this).parent(".item"));
 	return false;
 });
 
 
 $("#items").on("click", ".item a", function(event) {
-	openItem($(this).parent(".item"));
+	im.openItem($(this).parent(".item"));
 	return false;
 });
 
 $(document).on("click", function() {
-	$("#items .item").each(function(){
-		cancelSelectItem(this);
-	}); 
+	im.cancelSelect();
 });
 
-function delItems(targets, completely){
-	if(!completely)
-		completely = false
-
-	$.post("/delete", {targets: targets, completely: completely}, function(result){
-	    if(result.status == "ok"){
-	    	loadItems();
-	    } else {
-	        info("错误：" + result.error);
-	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		info("错误，代码：" + XMLHttpRequest.status);
-	});
-}
 
 $(document).keydown(function(event){
-	if($(event.target).is('input, textarea')) {
-        return;
-    }
+	if($(event.target).is('input, textarea'))
+        return ;
 
 	if(event.keyCode == 46) {
-		var targets = [];
-		$("#items .item.selected").each(function(){
-			if(tid = $(this).attr('id')){
-				targets.push(tid);
-			}
-		});
-		if(targets.length == 0)
-			return ;
-
 		event.preventDefault();
-		if(event.shiftKey) {
-			if(confirm("确认彻底删除 {} 项？".format(targets.length))) {
-			    delItems(targets, true);
-			}
-		} else {
-			if(confirm("确认删除 {} 项？".format(targets.length))) {
-			    delItems(targets);
-			}
-		}
-		loadDirs();
+
+		if(event.shiftKey)
+			im.delItems(true);
+		else
+			im.delItems();
 	} else if(event.keyCode == 13) {
 		if(item = $("#items .item.selected").first()){
 			event.preventDefault();
-			openItem(item);
+			im.openItem(item);
 		}
 	} else if(event.keyCode == 8) {
 		event.preventDefault();
 
-		upperDir();
+		im.upperDir();
 	}
 });
-
-function newDir(callback){
-	$.post("/newdir", {parent: PARENT}, function(result){
-	    if(result.status == "ok"){
-	    	if(callback)
-	    		callback(result.item);
-	    } else {
-	        info("错误：" + result.error);
-	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		info("错误，代码：" + XMLHttpRequest.status);
-	});
-}
 
 $(".new-dir").on("click", function(event){
-	newDir(function(item){
-		loadDirs();
-		items.push(item);
-		$("#items").append(renderDir(item));
-		rename($("#items #{}".format(item._id)));
-	});
+	im.newDir();
 });
-
-function newDoc(callback){
-	$.post("/newdoc", {parent: PARENT}, function(result){
-	    if(result.status == "ok"){
-	    	if(callback)
-	    		callback(result.item);
-	    } else {
-	        info("错误：" + result.error);
-	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		info("错误，代码：" + XMLHttpRequest.status);
-	});
-}
 
 $(".new-doc").on("click", function(event){
-	newDoc(function(item){
-		items.push(item);
-		$("#items").append(renderDoc(item));
-		rename($("#items #{}".format(item._id)));
-	});
+	im.newDoc();
 });
 
-function upperDir() {
-	if(parent = $("#dirnav #{}".format(PARENT))){
-		if(pparent = parent.attr('pid')){
-			PARENT = pparent;
-			loadItems();
-		}
-	}
-}
-
 $(".upper-dir").on("click", function(event){
-	upperDir();
+	im.upperDir();
 });
 
 $(".remove-items").on("click", function(event){
-	var targets = [];
-	$("#items .item.selected").each(function(){
-		if(tid = $(this).attr('id')){
-			targets.push(tid);
-		}
-	});
-
-	if(targets.length > 0 && confirm("确认删除 {} 项？".format(targets.length))) {
-	    delItems(targets);
-	}
-	loadDirs();
+	im.delItems();
 });
 
 $(document).on("click", ".popover", function(event){
@@ -641,6 +645,7 @@ $(document).on("click", ".popover", function(event){
 	var target = $(targetId);
 	if(! target)
 		return;
+
 	target.toggle();
 	target.css("left", $(this).offset().left - target.width() + "px");
 	target.css("top",  $(this).offset().top + ($(this).height() + 10) + "px");
@@ -650,11 +655,11 @@ $(".upload form").submit(function(event){
 	event.preventDefault();
 	$(this).ajaxSubmit({
 		dataType: 'json',
-		data: { parent: PARENT, _xsrf: getCookie("_xsrf") },
+		data: { parent: im.PARENT, _xsrf: getCookie("_xsrf") },
 		success: function(result){
 			if(result.status == "ok"){
 		    	info("上传成功");
-		    	loadItems();
+		    	im.loadItems();
 		    } else {
 		        info("错误：" + result.error);
 		    }
