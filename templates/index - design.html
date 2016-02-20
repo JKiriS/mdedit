@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>主页</title>
+  <base href="../" />
+  <link rel="stylesheet" type="text/css" href="static/css/materialize.min.css">
+  <link href="static/css/materialdesignicons.min.css" rel="stylesheet">
+
+  <script type="text/javascript" src="static/js/jquery-1.11.1.min.js"></script>
+  <script type="text/javascript" src="static/js/util.js"></script>
+  <script type="text/javascript" src="static/js/materialize.min.js"></script>
+  <script type="text/javascript" src="static/js/jquery-ui.js"></script>
+  <script type="text/javascript" src="static/js/util.js"></script>
+  <style type="text/css">
+
+    body {
+      margin: 0px;
+      padding: 0px;
+      background-color: #EEEEEF;
+    }
+
+		.main {
+			margin-top: 20px;
+			margin-left: 5%;
+			width: 90%;
+		}
+
+		.items {
+			width: 40%;
+			display: inline-block;
+			height: 800px;
+			margin-right: 20px;
+			float: left;
+			padding: 0;
+			background-color: #FAFAFA;
+			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+		}
+
+		.items .item-tools {
+			padding: 30px 10px;
+			margin-bottom: 10px;
+			background-color: #3F51B5;
+		}
+
+		.items .item-tools .tool {
+			display: inline-block;
+			cursor: pointer;
+			height: 36px;
+      		width: 36px;
+		}
+
+		.items .item-tools .tool.plate {
+
+		}
+
+		.items .item-tools .tool.circle {
+			background-color: rgb(255, 255, 255);
+			border-radius: 50%;
+			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+			float: right;
+			margin-right: 20px;
+		}
+
+		.items .item-tools .tool span {
+	      display: inline-block;
+	      margin-top: 8px;
+	      font-size: 20px;
+	    }
+
+		.items .item-tools .upload{
+			margin-left: 5px;
+			margin-top: 3px;
+			margin-bottom: 3px;
+		}
+
+		#items .item{
+			display: block;
+			text-decoration: none;
+			margin: 0px;
+			padding: 10px 0px;
+			height: 20px;
+			font-size: 20px;
+		}
+
+		#items .item input.checkbox{
+			margin-left: 20px;
+			height: 15px;
+		}
+
+		#items .item span.icon{
+			border-radius: 50%;
+		}
+
+		#items .item a{
+			text-decoration: none;
+		}
+
+		#items .item:hover{
+			background-color: #EEEEEE;
+		}
+
+		#items .item.selected{
+			background-color: #F5F5F5;
+		}
+
+		#items form {
+			display: inline-block;
+		}
+
+		#items .item .icon {
+			margin-right: 3px;
+		}
+
+		.dirnav {
+			width: 20%;
+			display: inline-block;
+			height: 800px;
+			float: left;
+			overflow: auto;
+			margin-right: 20px;
+			background-color: #FAFAFA;
+			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+		}
+
+		.dirnav .title {
+			padding: 30px 10px;
+			margin-bottom: 10px;
+			background-color: #3F51B5;
+			height: 36px;
+		}
+
+		#dirnav .item {
+    		display: block;
+			text-decoration: none;
+			margin: 0px;
+			padding: 10px 0px;
+			height: 20px;
+			font-size: 20px;
+		}
+
+		#dirnav .item span.icon{
+			border-radius: 50%;
+		}
+
+		#dirnav .item.shrinked{
+			display: none;
+		}
+
+		#dirnav .item:hover{
+			background-color: #EEEEEE;
+		}
+
+		#dirnav .item.active{
+			background-color: #F5F5F5;
+		}
+
+		#dirnav .item .icon {
+			margin-right: 5px;
+		}
+
+		.ui-state-hover {
+			background-color: pink;
+		}
+
+		.preview {
+			width: 30%;
+			display: inline-block;
+			height: 800px;
+			float: left;
+			overflow: auto;
+			margin-right: 20px;
+			background-color: #FAFAFA;
+			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+		}
+
+		.preview .title {
+			padding: 30px 10px;
+			margin-bottom: 10px;
+			background-color: #3F51B5;
+			height: 36px;
+		}
+	</style>
+</head>
+<body>
+
+  <div class="navbar-fixed">
+    <nav>
+      <div class="nav-wrapper">
+        <ul id="nav-mobile" class="hide-on-med-and-down">
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+	<!-- {% module xsrf_form_html() %} -->
+	<div class="main">
+		<div class="dirnav">
+			<div class="title">&nbsp;</div>
+			<div id="dirnav">&nbsp;</div>
+		</div>
+		<div class="items">
+			<div class="current-dir"></div>
+			<div class="item-tools">
+				<div class="tool upper-dir" >
+					<span class="icon icon-undo2"></span>
+				</div>
+				<div class="tool circle new-dir">
+					<span class="icon icon-folder-plus"></span>
+				</div>				
+				<div class="tool circle new-doc">
+					<span class="icon icon-file-empty"></span>
+				</div>
+				<div class="tool circle remove-items">
+					<span class="icon icon-bin"></span>
+				</div>
+				<div class="tool circle upload-file">
+					<span class="icon icon-cloud-upload"></span>
+				</div>
+				<div class="tool upload" style="display: none">
+					<form name="upload" method="POST" enctype="multipart/form-data" action="/upload">
+					    <!-- {% module xsrf_form_html() %} -->
+					    <input type="file" name="file" required>
+					    <input type="submit" name="submit">
+					  </form>
+				</div>
+			</div>
+			<div id="items">&nbsp;</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+
+var PARENT = "567fc3c0c8b58205901906f2";
+var ROOT = "567f3fd0d81471892a399fdb";
+
+var dis = [];
+
+
+function renderNavDir(dir, level) {
+	if(level == 0)
+		return '<div class="item" id="{}" pid="{}"><span class="icon icon-folder"></span>{}</div>'.format(dir._id, dir.parent, dir.title);
+	else
+		return '<div class="item shrinked" id="{}" pid="{}">{}<span class="icon icon-folder"></span>{}</div>'.format(dir._id, dir.parent, '&nbsp;'.repeat(level), dir.title);
+}
+
+function _renderDirs(dirs) {
+	var level = 0;
+	$("#dirnav").html('');
+
+	_curLevelDirs = [];
+	dirs.forEach(function(dir, i) {
+		if(dir.parent == ROOT){
+			$("#dirnav").append(renderNavDir(dir, level));
+			_curLevelDirs.push(dir._id);
+		}
+	});
+
+	var _temp;
+	var last;
+
+	while(_curLevelDirs.length > 0){
+		
+		level += 1;
+		_temp = [];
+		_curLevelDirs.forEach(function(pdir, pi){
+			last = $("#dirnav #{}".format(pdir));
+			dirs.forEach(function(dir, i) {
+				if(dir.parent == pdir){
+					$(last).after(renderNavDir(dir, level));
+					last = $("#dirnav #{}".format(dir._id));
+					_temp.push(dir._id);
+				}
+			})
+		});
+
+		_curLevelDirs = _temp;
+	}
+}
+
+function renderDirs(dirs) {
+	_renderDirs(dirs);
+	$("#dirnav .item").droppable({
+    	activeClass: "ui-state-default",
+        hoverClass: "ui-state-hover",
+        accept: ":not(.ui-sortable-helper)",
+        drop: function( event, ui ) {
+            var targetId = $(this).attr('id');
+            var sourceIds = [];
+            $("#items .item.selected").each(function(){
+            	sourceIds.push($(this).attr('id'));
+            });
+            if(sourceIds.length > 0)
+            	moveItems(sourceIds, targetId);
+        }
+    });
+}
+
+function openDir(dir) {
+	PARENT = $(dir).attr('id');
+	loadItems();
+}
+
+function expandDir(dir) {
+	var did = $(dir).attr('id');
+	$(dir).find('span.icon').toggleClass('icon-folder');
+	$(dir).find('span.icon').toggleClass('icon-folder-open');
+	$('#dirnav .item[pid="'+did+'"]').removeClass('shrinked');
+}
+
+
+function shrinkDir(dir) {
+	var did = $(dir).attr('id');
+	$(dir).find('span.icon').toggleClass('icon-folder-open');
+	$(dir).find('span.icon').toggleClass('icon-folder');
+	$('#dirnav .item[pid="'+did+'"]').addClass('shrinked');
+}
+
+function activeDir(did, cur) {
+	if(!did)
+		return ;
+	if(cur == null)
+		cur = true;
+
+	var dir = $('#dirnav .item[id="'+did+'"]').first();
+	if(dir) {
+		if(cur)
+			dir.addClass('active');
+		else
+			expandDir(dir);
+		activeDir(dir.attr('pid'), false);
+	}
+}
+
+function loadDirs(){
+	// $.post("/dirs", {}, function(result){
+	//     if(result.status == "ok"){
+	//     	dirs = result.dirs;
+	//     	renderDirs(result.dirs);
+
+	// 		// activeDir(result.curDir);
+
+	//         info("加载成功");
+	//     } else {
+	//         info("错误：" + result.error);
+	//     }
+	// }, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+	// 	info("错误，代码：" + XMLHttpRequest.status);
+	// });
+	result = {"dirs": [{"_id": "567f8758d81471892a399fdc", "parent": "567f3fd0d81471892a399fdb", "title": "bin"}, {"_id": "567f9381c8b5820824479cc5", "parent": "567f9218c8b5820824479cbf", "title": "\u65b0\u5efa\u5f52\u6863"}, {"_id": "567fc3c0c8b58205901906f2", "parent": "567f3fd0d81471892a399fdb", "title": "doc"}, {"_id": "567fc3fdc8b58205901906f3", "parent": "567f3fd0d81471892a399fdb", "title": "file"}, {"_id": "567ff207beb29b20af0d6ad0", "parent": "567fc3c0c8b58205901906f2", "title": "\u7f8e\u56e2"}, {"_id": "5680a363beb29b216be4f37e", "parent": "567fc3c0c8b58205901906f2", "title": "\u8bfb\u4e66\u7b14\u8bb0"}], "status": "ok"}
+	dirs = result.dirs;
+	renderDirs(result.dirs);
+	info("加载成功");
+}
+
+loadDirs();
+
+$("#dirnav").on("click", ".item", function(event) {
+	openDir(this);
+
+	return false;
+});
+
+
+$("#dirnav").on("click", ".item .icon", function(event) {
+	var parent = $(this).parents('.item').first();
+	if($(this).hasClass('icon-folder'))
+		expandDir(parent);
+	else
+		shrinkDir(parent);
+
+	return false;
+});
+
+var items = [];
+
+function renderDir(item){
+	return '<div class="item dir" id="{}"><input type="checkbox" class="checkbox"><span class="icon icon-folder"></span><span class="title">{}</span></div>'.format(item._id, item.title);
+}
+
+function renderDoc(item){
+	return '<div class="item doc" id="{}"><input type="checkbox" class="checkbox"><span class="icon icon-file-text2"></span><a class="title" href="{}" target="_blank">{}</a></div>'.format(item._id, item.url, item.title);
+}
+
+function renderFile(item){
+	return '<div class="item file" id="{}"><input type="checkbox" class="checkbox"><span class="icon icon-file-empty"></span><a class="title" href="{}" target="_blank">{}</a></div>'.format(item._id, item.url, item.title);
+}
+
+function moveItems(sources, target){
+	$.post("/move", {target: target, sources: sources}, function(result){
+	    if(result.status == "ok"){
+	        info("移动成功");
+	        loadItems();
+	        loadDirs();
+	    } else {
+	        info("移动错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+function renderItems(items) {
+	$("#items").html('');
+	items.forEach(function(item, i){
+		if(item.type == 'dir'){
+			$("#items").append(renderDir(item));
+		} else if(item.type == 'doc'){
+			$("#items").append(renderDoc(item));
+		} else if(item.type == 'file'){
+			$("#items").append(renderFile(item));
+		}
+	});
+
+	$("#items .item").draggable({
+        appendTo: "body",
+        helper: "clone"
+    });
+
+    $("#items .item.dir").droppable({
+    	activeClass: "ui-state-default",
+        hoverClass: "ui-state-hover",
+        accept: ":not(.ui-sortable-helper)",
+        drop: function( event, ui ) {
+            var targetId = $(this).attr('id');
+            var sourceIds = [];
+            $("#items .item.selected").each(function(){
+            	sourceIds.push($(this).attr('id'));
+            });
+            if(sourceIds.length > 0)
+            	moveItems(sourceIds, targetId);
+        }
+    });
+}
+
+function openItem(item) {
+	if($(item).hasClass('dir')) {
+		PARENT = $(item).attr('id');
+		loadItems();
+	} else if (url = $(item).attr('href')) {
+		window.open(url, "_blank"); 
+	}
+
+}
+
+function previewItem(item) {
+	$("#preview").html(item.toString());
+}
+
+function selectItem(item) {
+	$(item).addClass("selected");
+	$(item).find("input.checkbox").attr("checked", "checked");
+}
+
+function cancelSelectItem(item) {
+	$(item).removeClass("selected");
+	$(item).find("input.checkbox").removeAttr("checked");
+}
+
+var RENAMING = false;
+
+function reName(item) {
+	RENAMING = true;
+	var oldTitle = $(item).find('span.title').html();
+	$(item).find('span.title').replaceWith('<form id="rename"><input value="{}"></form>'.format(oldTitle));
+
+	$('#items form#rename input').focus(function(){
+		 $(this).select();
+	});
+	$('#items form#rename input').focus();
+	$('#items form#rename input').blur(function(event){
+		cancelReName();
+	});
+	$('#items form#rename').submit(function(event) {
+		event.preventDefault();
+
+		var newTitle = $(this).find('input').val();
+		var target = $(item).attr("id");
+		
+		if(!target || newTitle==oldTitle)
+			return
+		
+		$.post("/rename", {target: target, title: newTitle}, function(result){
+		    if(result.status == "ok"){
+		        info("重命名成功");
+		        loadItems();
+		        if($(item).hasClass('dir'))
+		        	loadDirs();
+		    } else {
+		        info("重命名错误：" + result.error);
+		    }
+		}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		    info("错误，代码：" + XMLHttpRequest.status);
+		});
+	});
+}
+
+function cancelReName() {
+	if(RENAMING) {
+		RENAMING = false;
+		renderItems(items);
+	}
+}
+
+function loadItems() {
+	// $.post("/items", {parent: PARENT}, function(result){
+	//     if(result.status == "ok"){
+	//     	items = result.items;
+	//     	renderItems(items);
+	//         info("加载成功");
+	//     } else {
+	//         info("加载错误：" + result.error);
+	//     }
+	// }, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+	// 	info("错误，代码：" + XMLHttpRequest.status);
+	// });
+	result = {"status": "ok", "items": [{"url": "/a/56652c83beb29b24d931bf91", "_id": "56652c83beb29b24d931bf91", "type": "doc", "title": "\u6253\u5370"}, {"url": "", "_id": "567ff207beb29b20af0d6ad0", "type": "dir", "title": "\u7f8e\u56e2"}, {"url": "", "_id": "5680a363beb29b216be4f37e", "type": "dir", "title": "\u8bfb\u4e66\u7b14\u8bb0"}, {"url": "/a/565668ebbeb29b0fb3f35fb1", "_id": "565668ebbeb29b0fb3f35fb1", "type": "doc", "title": "nginx"}, {"url": "/a/567a7fb3beb29b24d931bf93", "_id": "567a7fb3beb29b24d931bf93", "type": "doc", "title": "\u6570\u636e\u5206\u6790demo"}, {"url": "/a/5680f94fbeb29b216b2977ad", "_id": "5680f94fbeb29b216b2977ad", "type": "doc", "title": "\u5929\u7ffc"}]}
+	items = result.items;
+	renderItems(result.items);
+	info("加载成功");
+}
+
+loadItems();
+
+$("#items").on("click", ".item", function(event) {
+
+	if($(this).find("input#rename").length > 0)
+		return ;
+
+	cancelReName();
+
+	if(event.ctrlKey){
+		selectItem(this);
+	} else if($(this).hasClass("selected")){
+		$("#items .item.selected").each(function(){
+			cancelSelectItem(this);
+		}); 
+		reName(this);
+	} else {
+		$("#items .item.selected").each(function(){
+			cancelSelectItem(this);
+		}); 
+		selectItem(this);
+		previewItem(this);
+	}
+
+	return false;
+});
+
+
+$("#items").on("click", ".item a", function(event) {
+	openItem(this);
+	return false;
+});
+
+$(document).on("click", function() {
+	$("#items .item").each(function(){
+		cancelSelectItem(this);
+	}); 
+});
+
+function delItems(targets, completely){
+	if(!completely)
+		completely = false
+
+	$.post("/delete", {targets: targets, completely: completely}, function(result){
+	    if(result.status == "ok"){
+	    	loadItems();
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+$(document).keydown(function(event){
+	if($(event.target).is('input, textarea')) {
+        return;
+    }
+
+	if(event.keyCode == 46) {
+		var targets = [];
+		$("#items .item.selected").each(function(){
+			if(tid = $(this).attr('id')){
+				targets.push(tid);
+			}
+		});
+		if(targets.length == 0)
+			return ;
+
+		event.preventDefault();
+		if(event.shiftKey) {
+			if(confirm("确认彻底删除 {} 项？".format(targets.length))) {
+			    delItems(targets, true);
+			}
+		} else {
+			if(confirm("确认删除 {} 项？".format(targets.length))) {
+			    delItems(targets);
+			}
+		}
+	} else if(event.keyCode == 13) {
+		if(item = $("#items .item.selected").first()){
+			event.preventDefault();
+			openItem(item);
+		}
+	} else if(event.keyCode == 8) {
+		event.preventDefault();
+
+		upperDir();
+	}
+});
+
+function newDir(callback){
+	$.post("/newdir", {parent: PARENT}, function(result){
+	    if(result.status == "ok"){
+	    	if(callback)
+	    		callback(result.item);
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+$(".new-dir").on("click", function(event){
+	newDir(function(item){
+		items.push(item);
+		$("#items").append(renderDir(item));
+		reName($("#items #{}".format(item._id)));
+	});
+});
+
+function newDoc(callback){
+	$.post("/newdoc", {parent: PARENT}, function(result){
+	    if(result.status == "ok"){
+	    	if(callback)
+	    		callback(result.item);
+	    } else {
+	        info("错误：" + result.error);
+	    }
+	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+		info("错误，代码：" + XMLHttpRequest.status);
+	});
+}
+
+$(".new-doc").on("click", function(event){
+	newDoc(function(item){
+		items.push(item);
+		$("#items").append(renderDoc(item));
+		reName($("#items #{}".format(item._id)));
+	});
+});
+
+function upperDir() {
+	if(parent = $("#dirnav #{}".format(PARENT))){
+		if(pparent = parent.attr('pid')){
+			PARENT = pparent;
+			loadItems();
+		}
+	}
+}
+
+$(".upper-dir").on("click", function(event){
+	upperDir();
+});
+
+$(".remove-items").on("click", function(event){
+	var targets = [];
+	$("#items .item.selected").each(function(){
+		if(tid = $(this).attr('id')){
+			targets.push(tid);
+		}
+	});
+
+	if(targets.length > 0 && confirm("确认删除 {} 项？".format(targets.length))) {
+	    delItems(targets);
+	}
+});
+
+$(".upload-file").on("click", function(event){
+	$(".tool.upload").toggle();
+});
+
+</script>
+</html>

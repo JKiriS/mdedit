@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>主页</title>
   <base href="../" />
   <link rel="stylesheet" type="text/css" href="static/css/materialize.min.css">
@@ -25,10 +25,6 @@
 	#items {
 	  max-height: 800px;
 	  min-height: 500px;
-	}
-
-	#items .item:hover{
-		background-color: #EEEEEE;
 	}
 
 	#items .item .checkbox {
@@ -124,8 +120,8 @@
   </style>
 </head>
 <body>
-	{% module xsrf_form_html() %}
-	
+	<!-- {% module xsrf_form_html() %} -->
+
 	<nav>
       <div class="nav-wrapper">
         <ul class="right hide-on-med-and-down">
@@ -150,7 +146,12 @@
             </div>
 
             <ul class="collection" id="dirnav">
-		    </ul>
+		        <!-- <li class="collection-item item">
+		          <div style="display: inline-block; width: 30px;"></div>
+		          <a class="upper-dir" href="javascript:void(0)"><i class="circle mdi mdi-folder icon"></i></a>
+			      <span class="title">Title</span>
+		        </li> -->
+		      </ul>
 
           </div>
         </div>
@@ -160,7 +161,7 @@
 
             <div class="card-content white-text teal lighten-2">
               <a class="upper-dir" href="javascript:void(0)" title="上一级"><i class="mdi mdi-arrow-left icon-plane"></i></a>
-              <span class="card-title parent-title"></span>
+              <span class="card-title">doc</span>
               <ul class="btns" style="float: right;">
                 <li><a class="remove-items" title="删除" href="javascript:void(0)"><i class="mdi mdi-delete icon circle grey"></i></a></li>
                 <li><a class="popover" target="#upload" title="上传" href="javascript:void(0)"><i class="mdi mdi-cloud-upload icon circle blue"></i></a></li>
@@ -168,6 +169,12 @@
             </div>
 
 			  <ul class="collection" style="min-height: 500px;" id="items">
+		        <!-- <li class="collection-item item">
+		          <div class="checkbox"><input type="checkbox" id="test5" />      <label for="test5"></label></div>
+		          <i class="circle mdi mdi-folder icon"></i>
+			      <a href="javascript:void(0)"><span class="title">Title</span></a>
+			      <span><input type="text" value="Title" style="width: 50%;"/></span>
+		        </li> -->
 		      </ul>
 
             <ul class="float-btns" style="bottom: 40px; right: 40px;">
@@ -246,12 +253,12 @@ NavDirManager.prototype._renderDirs = function(dirs) {
 
 NavDirManager.prototype.renderNavDir = function(dir, level) {
 	return '<li class="collection-item item {}" id="{}" pid="{}"><div style="display: inline-block; width: {}px;"></div><a class="toggle-dir" href="javascript:void(0)"><i class="circle mdi mdi-folder icon"></i></a><a href="javascript:void(0)" class="title" title="{}">{}</a></li>'.format(level == 0 ? "shrinked" : "hidden", dir._id, dir.parent, level * 30, dir.title, dir.title.length > 20 ? dir.title.substr(0, 20) + '...' : dir.title);      
-} 
+}                        
 
 
 NavDirManager.prototype.renderDirs = function() {
 	var that = this;
-	that._renderDirs(that.dirs);
+	that._renderDirs(that.dirs); 
 	$("{} .item".format(that.eid)).droppable({
     	activeClass: "ui-state-default",
         hoverClass: "ui-state-hover",
@@ -268,7 +275,6 @@ NavDirManager.prototype.renderDirs = function() {
     });
 }
 
-
 NavDirManager.prototype.expandDir = function(dir) {
 	var did = $(dir).attr('id');
 	$(dir).toggleClass('shrinked');
@@ -281,7 +287,6 @@ NavDirManager.prototype.shrinkDir = function(dir) {
 	$(dir).toggleClass('shrinked');
 	$('{} .item[pid="{}"]'.format(this.eid, did)).addClass('hidden');
 }
-
 
 NavDirManager.prototype.activeDir = function(did, cur) {
 	if(!did)
@@ -301,22 +306,26 @@ NavDirManager.prototype.activeDir = function(did, cur) {
 
 NavDirManager.prototype.loadDirs = function(){
 	var that = this;
-	$.post("/dirs", {}, function(result){
-	    if(result.status == "ok"){
-	    	that.dirs = result.dirs;
-	    	that.renderDirs();
+	// $.post("/dirs", {}, function(result){
+	//     if(result.status == "ok"){
+	//     	that.dirs = result.dirs;
+	//     	that.renderDirs();
 
-			// activeDir(result.curDir);
+	// 		// activeDir(result.curDir);
 
-	        Materialize.toast("加载成功", 3000);
-	    } else {
-	        Materialize.toast("错误：" + result.error, 3000);
-	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-	});
+	//         Materialize.toast("加载成功", 3000);
+	//     } else {
+	//         Materialize.toast("错误：" + result.error, 3000);
+	//     }
+	// }, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+	// 	Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
+	// });
+
+	result = {"dirs": [{"_id": "567f8758d81471892a399fdc", "parent": "567f3fd0d81471892a399fdb", "title": "bin"}, {"_id": "567f9381c8b5820824479cc5", "parent": "567f9218c8b5820824479cbf", "title": "\u65b0\u5efa\u5f52\u6863"}, {"_id": "567fc3c0c8b58205901906f2", "parent": "567f3fd0d81471892a399fdb", "title": "doc"}, {"_id": "567fc3fdc8b58205901906f3", "parent": "567f3fd0d81471892a399fdb", "title": "file"}, {"_id": "567ff207beb29b20af0d6ad0", "parent": "567fc3c0c8b58205901906f2", "title": "\u7f8e\u56e2"}, {"_id": "5680a363beb29b216be4f37e", "parent": "567fc3c0c8b58205901906f2", "title": "\u8bfb\u4e66\u7b14\u8bb0"}], "status": "ok"}
+	that.dirs = result.dirs;
+	that.renderDirs();
+	Materialize.toast("加载成功", 3000);
 }
-
 
 function ItemManager(eid) {
 	this.eid = eid;
@@ -324,7 +333,6 @@ function ItemManager(eid) {
 	this.items = [];
 	this.navdir = null;
 }
-
 
 ItemManager.prototype.renderDir = function(item){
 	return '<li class="collection-item item dir" id="{}"><div class="checkbox"><input type="checkbox" id="chechbox{}" /> <label for="chechbox{}"></label></div><i class="circle mdi mdi-folder icon"></i><a class="title" href="javascript:void(0)" title="{}">{}</a><a href="javascript:void(0)" class="secondary-content rename"><i class="mdi mdi-pencil"></i></a></li>'.format(item._id, item._id, item._id, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
@@ -337,7 +345,6 @@ ItemManager.prototype.renderDoc = function(item){
 ItemManager.prototype.renderFile = function(item){
 	return '<li class="collection-item item file" id="{}"><div class="checkbox"><input type="checkbox" id="chechbox{}" /> <label for="chechbox{}"></label></div><i class="circle mdi mdi-file icon"></i><a class="title" href="{}" title="{}" target="_blank">{}</a><a href="javascript:void(0)" class="secondary-content rename"><i class="mdi mdi-pencil"></i></a></li>'.format(item._id, item._id, item._id, item.url, item.title, item.title.length > 45 ? item.title.substr(0, 45) + "..." : item.title);
 }
-
 
 ItemManager.prototype.renderItems = function() {
 	var that = this;
@@ -453,34 +460,44 @@ ItemManager.prototype.cancelRename = function() {
 
 ItemManager.prototype.loadItems = function() {
 	var that = this;
-	$.post("/items", {parent: that.PARENT}, function(result){
-	    if(result.status == "ok"){
-	    	that.items = result.items;
+	// $.post("/items", {parent: that.PARENT}, function(result){
+	//     if(result.status == "ok"){
+	//     	that.items = result.items;
 
-	    	var name = $("{} .item#{}".format(that.navdir.eid, that.PARENT)).find('.title').html();
+	//     	var name = $("{} .item#{}".format(that.navdir.eid, that.PARENT)).find('.title').html();
 
-	    	if(name)
-				$('.parent-title').html(name.length > 9? name.substr(0, 9) + '...': name);
-			else
-				$('.parent-title').html("");
+	//     	if(name)
+	// 			$(".chips.items").find('.chips-title').html(name.length > 9? name.substr(0, 9) + '...': name);
+	// 		else
+	// 			$(".chips.items").find('.chips-title').html("");
 
-	    	that.renderItems();
-	        Materialize.toast("加载成功", 3000);
-	    } else {
-	        Materialize.toast("加载错误：" + result.error, 3000);
-	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-	});
+	//     	that.renderItems();
+	//         Materialize.toast("加载成功", 3000);
+	//     } else {
+	//         Materialize.toast("加载错误：" + result.error, 3000);
+	//     }
+	// }, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
+	// 	Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
+	// });
+
+	result = {"status": "ok", "items": [{"url": "/a/56652c83beb29b24d931bf91", "_id": "56652c83beb29b24d931bf91", "type": "doc", "title": "\u6253\u5370"}, {"url": "", "_id": "567ff207beb29b20af0d6ad0", "type": "dir", "title": "\u7f8e\u56e2"}, {"url": "", "_id": "5680a363beb29b216be4f37e", "type": "dir", "title": "\u8bfb\u4e66\u7b14\u8bb0"}, {"url": "/a/565668ebbeb29b0fb3f35fb1", "_id": "565668ebbeb29b0fb3f35fb1", "type": "doc", "title": "nginx"}, {"url": "/a/567a7fb3beb29b24d931bf93", "_id": "567a7fb3beb29b24d931bf93", "type": "doc", "title": "\u6570\u636e\u5206\u6790demo"}, {"url": "/a/5680f94fbeb29b216b2977ad", "_id": "5680f94fbeb29b216b2977ad", "type": "doc", "title": "\u5929\u7ffc"}]};
+	that.items = result.items;
+
+	var name = $("{} .item#{}".format(that.navdir.eid, that.PARENT)).find('.title').html();
+
+	if(name)
+		$(".chips.items").find('.chips-title').html(name.length > 9? name.substr(0, 9) + '...': name);
+	else
+		$(".chips.items").find('.chips-title').html("");
+
+	that.renderItems();
+	Materialize.toast("加载成功", 3000);
 }
 
 ItemManager.prototype.delItems = function(completely){
 	var that = this;
-	if(completely == null)
-		completely = false;
-
-	if(navdir.BIN == im.PARENT)
-		completely = true;
+	if(completely == null )
+		completely = false
 
 	var targets = [];
 	$("{} .item.selected".format(that.eid)).each(function(){
@@ -558,12 +575,13 @@ ItemManager.prototype.upperDir = function() {
 }
 
 var navdir = new NavDirManager("#dirnav");
-navdir.ROOT = "{{ ROOT }}";
-navdir.BIN = "{{ BIN }}"
+// navdir.ROOT = "{{ ROOT }}";
+navdir.ROOT = "567f3fd0d81471892a399fdb";
 navdir.loadDirs();
 
 var im = new ItemManager("#items");
-im.PARENT = "{{ parent }}";
+// im.PARENT = "{{ parent }}";
+im.PARENT = "567fc3c0c8b58205901906f2";
 im.navdir = navdir;
 navdir.im = im;
 im.loadItems();
@@ -587,6 +605,33 @@ $("#dirnav").on("click", ".item .toggle-dir", function(event) {
 	return false;
 });
 
+// $("#items").on("click", ".item", function(event) {
+
+	// if($(this).find("#rename").length > 0)
+	// 	return ;
+
+	// im.cancelRename();
+
+	// // if(event.ctrlKey){
+	// // 	im.toggleSelectItem(this);
+	// // } else if($(this).hasClass("selected")){
+	// // 	im.cancelSelect();
+	// // 	im.rename(this);
+	// // } else {
+	// // 	im.cancelSelect();
+	// // 	im.toggleSelectItem(this);
+	// // }
+	// if($(this).hasClass("selected")){
+	// 	// im.cancelSelect();
+	// 	im.rename(this);
+	// } else {
+	// 	im.cancelSelect();
+	// 	im.toggleSelectItem(this);
+	// }
+
+// 	return false;
+// });
+
 $("#items").on("click", ".item .checkbox input", function(event) {
 	// im.cancelRename();
 	im.toggleSelectItem($(this).parents(".item"));
@@ -605,6 +650,10 @@ $("#items").on("click", ".item a.title", function(event) {
 	im.openItem($(this).parent(".item"));
 	return false;
 });
+
+// $(document).on("click", function() {
+// 	im.cancelSelect();
+// });
 
 
 $(document).keydown(function(event){
@@ -657,7 +706,7 @@ $(document).on("click", ".popover", function(event){
 	target.css("top",  $(this).offset().top + ($(this).height() + 10) + "px");
 });
 
-$(".upload form").submit(function(event){
+$("#upload form").submit(function(event){
 	event.preventDefault();
 	$(this).ajaxSubmit({
 		dataType: 'json',

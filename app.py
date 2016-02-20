@@ -25,13 +25,14 @@ FILE_ROOT = cfg['file_root']
 
 
 class Session(object):
+
     def __init__(self, db, sid=None):
         self.db = db
         self.sid = str(sid)
 
         if not sid:
             self.sid = str(uuid.uuid4())
-        
+
         self._s = self.db.session.find_one({'_id': self.sid})
         if not self._s:
             self._s = {}
@@ -41,7 +42,8 @@ class Session(object):
 
     def set(self, key, value):
         self._s[key] = value
-        self.db.session.update_one({'_id': self.sid}, {'$set': {key: value}}, upsert=True)
+        self.db.session.update_one(
+            {'_id': self.sid}, {'$set': {key: value}}, upsert=True)
 
     def pop(self, key):
         try:
@@ -52,6 +54,7 @@ class Session(object):
 
 
 class BaseHandler(tornado.web.RequestHandler):
+
     @property
     def db(self):
         return self.application.mongo
@@ -94,11 +97,13 @@ def admin_authenticated(func):
 
 
 class IndexHandler(BaseHandler):
+
     def get(self):
-        self.render('index.html', parent=DOC_ROOT, ROOT=ROOT)
+        self.render('index.html', parent=DOC_ROOT, ROOT=ROOT, BIN=BIN_ROOT)
 
 
 class UploadHandler(BaseHandler):
+
     def post(self):
         res = {}
         try:
@@ -106,26 +111,26 @@ class UploadHandler(BaseHandler):
             tmpPath = self.get_argument('file.path')
             parent = self.get_argument('parent', FILE_ROOT)
 
-            paths = ['file',] + tmpPath.split('/')[-2:]
+            paths = ['file', ] + tmpPath.split('/')[-2:]
             spath = '/'.join(paths)
 
             _pointIndex = title.find('.')
             if _pointIndex > 0:
                 spath += title[_pointIndex:]
-            
+
             os.symlink(tmpPath, '/home/jkiris/' + spath)
             url = '/' + spath
 
             fileInfo = dict(title=title,
-                type='file',
-                parent=parent,
-                size=self.get_argument('file.size'),
-                tmpPath=tmpPath,
-                MD5=self.get_argument('file.md5'),
-                contentType=self.get_argument('file.content_type'),
-                url=url,
-                create_time = datetime.datetime.now(),
-            )
+                            type='file',
+                            parent=parent,
+                            size=self.get_argument('file.size'),
+                            tmpPath=tmpPath,
+                            MD5=self.get_argument('file.md5'),
+                            contentType=self.get_argument('file.content_type'),
+                            url=url,
+                            create_time=datetime.datetime.now(),
+                            )
 
             self.db.item.insert_one(fileInfo)
             res['status'] = 'ok'
@@ -138,6 +143,7 @@ class UploadHandler(BaseHandler):
 
 
 class ArticleHandler(BaseHandler):
+
     def get(self, aid):
         if not aid:
             article = dict(title="新文档", content="")
@@ -164,14 +170,14 @@ class ArticleHandler(BaseHandler):
             try:
                 self.db.item.update_one(
                     {'_id': ObjectId(aid)},
-                    {'$set': 
+                    {'$set':
                         {
-                            'title': title, 
+                            'title': title,
                             'content': content,
                             'last_modified': datetime.datetime.now(),
                             'last_visited': datetime.datetime.now(),
                         }
-                    }
+                     }
                 )
                 res['status'] = 'ok'
             except:
@@ -182,14 +188,14 @@ class ArticleHandler(BaseHandler):
             aid = ObjectId()
             article = dict(
                 _id=aid,
-                title = title,
-                content = content,
+                title=title,
+                content=content,
                 type='doc',
                 url='/a/' + str(aid),
                 parent=DOC_ROOT,
-                create_time = datetime.datetime.now(),
-                last_visited = datetime.datetime.now(),
-                last_modified = datetime.datetime.now()
+                create_time=datetime.datetime.now(),
+                last_visited=datetime.datetime.now(),
+                last_modified=datetime.datetime.now()
             )
 
             self.db.item.insert_one(article)
@@ -201,11 +207,13 @@ class ArticleHandler(BaseHandler):
 
 
 class LoginHandler(BaseHandler):
+
     def get(self):
         self.render('login.html')
 
     def post(self):
-        self.login_user(self.get_argument("email"), self.get_argument("password"))
+        self.login_user(self.get_argument("email"),
+                        self.get_argument("password"))
 
     def login_user(self, email, password):
         user = self.db.user.find_one({'email': email})
@@ -229,6 +237,7 @@ class LoginHandler(BaseHandler):
 
 
 class LogoutHandler(BaseHandler):
+
     @user_authenticated
     def get(self):
         self.logout()
@@ -239,27 +248,33 @@ class LogoutHandler(BaseHandler):
 
 
 class ItemListHandler(BaseHandler):
+
     def post(self):
         parent = self.get_argument('parent', ROOT)
 
-        _items = self.db.item.find({'parent': parent}, ['title', 'parent', 'type', 'url'])
-        items = map(lambda d: dict(_id=str(d['_id']), type=d['type'], title=d['title'], 
-        	url=d.get('url', '')), _items)
+        _items = self.db.item.find(
+            {'parent': parent}, ['title', 'parent', 'type', 'url'])
+        items = map(lambda d: dict(_id=str(d['_id']), type=d['type'], title=d['title'],
+                                   url=d.get('url', '')), _items)
         res = dict(status='ok', items=items)
 
         self.write(json.dumps(res))
 
 
 class DirListHandler(BaseHandler):
+
     def post(self):
-        _dirs = self.db.item.find({'_id': {'$ne': ObjectId(ROOT)}, 'type': 'dir'}, ['title', 'parent'])
-        dirs = map(lambda d: dict(_id=str(d['_id']), title=d['title'], parent=d['parent']), _dirs)
+        _dirs = self.db.item.find(
+            {'_id': {'$ne': ObjectId(ROOT)}, 'type': 'dir'}, ['title', 'parent'])
+        dirs = map(lambda d: dict(_id=str(d['_id']), title=d[
+                   'title'], parent=d['parent']), _dirs)
         res = dict(status='ok', dirs=dirs)
 
         self.write(json.dumps(res))
 
 
 class NewDirHandler(BaseHandler):
+
     @user_authenticated
     def post(self):
         parent = self.get_argument('parent', ROOT)
@@ -278,13 +293,14 @@ class NewDirHandler(BaseHandler):
 
 
 class NewDocHandler(BaseHandler):
+
     @user_authenticated
     def post(self):
         parent = self.get_argument('parent', DOC_ROOT)
         title = self.get_argument('title', '新建文档')
         aid = ObjectId()
         doc = dict(_id=aid, title=title, parent=parent, type='doc', content='',
-        	url='/a/' + str(aid))
+                   url='/a/' + str(aid))
 
         res = dict(status='ok')
         try:
@@ -299,6 +315,7 @@ class NewDocHandler(BaseHandler):
 
 
 class RenameHandler(BaseHandler):
+
     @user_authenticated
     def post(self):
         target = self.get_argument('target')
@@ -306,7 +323,8 @@ class RenameHandler(BaseHandler):
 
         res = dict(status='ok')
         try:
-            self.db.item.update_one({'_id': ObjectId(target)}, {'$set': {'title': title}})
+            self.db.item.update_one({'_id': ObjectId(target)}, {
+                                    '$set': {'title': title}})
         except:
             res['status'] = 'error'
             res['error'] = traceback.format_exc()
@@ -315,6 +333,7 @@ class RenameHandler(BaseHandler):
 
 
 class DeleteHandler(BaseHandler):
+
     @user_authenticated
     def post(self):
         targets = self.get_arguments('targets[]')
@@ -326,7 +345,8 @@ class DeleteHandler(BaseHandler):
             if completely == 'true':
                 self.db.item.delete_many({'_id': {'$in': targets}})
             else:
-                self.db.item.update_many({'_id': {'$in': targets}}, {'$set':{'parent': BIN_ROOT}})
+                self.db.item.update_many({'_id': {'$in': targets}}, {
+                                         '$set': {'parent': BIN_ROOT}})
         except:
             res['status'] = 'error'
             res['error'] = traceback.format_exc()
@@ -335,6 +355,7 @@ class DeleteHandler(BaseHandler):
 
 
 class MoveHandler(BaseHandler):
+
     @user_authenticated
     def post(self):
         target = self.get_argument('target')
@@ -343,7 +364,8 @@ class MoveHandler(BaseHandler):
         res = dict(status='ok')
         try:
             sources = map(lambda sid: ObjectId(sid), sources)
-            self.db.item.update_many({'_id': {'$in': sources}}, {'$set':{'parent': target}})
+            self.db.item.update_many({'_id': {'$in': sources}}, {
+                                     '$set': {'parent': target}})
         except:
             res['status'] = 'error'
             res['error'] = traceback.format_exc()
@@ -352,6 +374,7 @@ class MoveHandler(BaseHandler):
 
 
 class Application(tornado.web.Application):
+
     def __init__(self):
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
@@ -366,7 +389,8 @@ class Application(tornado.web.Application):
         handlers = [
             (r"/", IndexHandler),
 
-            (r"/(favicon\.ico)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
+            (r"/(favicon\.ico)", tornado.web.StaticFileHandler,
+             dict(path=settings['static_path'])),
 
             (r"/login", LoginHandler),
             (r"/logout", LogoutHandler),

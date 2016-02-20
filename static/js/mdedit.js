@@ -139,7 +139,7 @@ function resize(){
   var bodyHeight = $(window).height();
 
   if(! mdeditor.PREVIEW){
-    mainWidth = Math.min(Math.max(bodyWidth * 0.9, 900), bodyWidth - 20);
+    mainWidth = Math.min(Math.max(bodyWidth * 0.95, 900), bodyWidth - 20);
     mainHeight = bodyHeight - 90;
     $("div.main").outerWidth(mainWidth);
     $("div.main").css("left", (bodyWidth - mainWidth) / 2 + "px");
