@@ -91,8 +91,13 @@
   </div>
 
   <ul id="dropdown-account" class="dropdown-content" style="text-align: center;">
-    <li><a href="/login">登录</a></li>
-    <li><a href="#!">登出</a></li>
+    {% if current_user %}
+    <li><a href="javascript:void(0)">{{ current_user['username'] }}</a></li>
+    <li><a href="/logout?next={{ request.uri }}">登出</a></li>
+    {% else %}
+    <li><a href="/login?next={{ request.uri }}">登录</a></li>
+    <li><a href="#!">注册</a></li>
+    {% end %}
   </ul>
 
   <div class="main">
