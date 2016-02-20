@@ -657,7 +657,7 @@ $(document).on("click", ".popover", function(event){
 	target.css("top",  $(this).offset().top + ($(this).height() + 10) + "px");
 });
 
-$(".upload form").submit(function(event){
+$("#upload form").submit(function(event){
 	event.preventDefault();
 	$(this).ajaxSubmit({
 		dataType: 'json',
