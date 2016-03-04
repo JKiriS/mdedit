@@ -21,9 +21,13 @@
       background-color: #EEEEEF;
     }
 
+    .card ul.collection {
+    	overflow-y: auto;
+    }
+
 	#items {
-	  max-height: 800px;
-	  min-height: 500px;
+	  /*max-height: 800px;
+	  min-height: 500px;*/
 	}
 
 	#items .item:hover{
@@ -70,8 +74,8 @@
 	}
 
 	#dirnav {
-	  max-height: 800px;
-	  min-height: 500px;
+	  /*max-height: 800px;
+	  min-height: 500px;*/
 	}
 
 	#dirnav .item.hidden{
@@ -679,6 +683,18 @@ $("#upload form").submit(function(event){
 		}
 	});
 });
+
+function resize(){
+	var height = $(window).height() - $(".card ul.collection").offset().top - 35; 
+	var minHeight = 500;
+	$(".card ul.collection").css("height", Math.max(height, minHeight) + "px");
+}
+
+$(window).resize(function(event){
+    resize();
+});
+
+resize();
 
 </script>
 </html>
