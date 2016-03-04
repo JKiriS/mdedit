@@ -127,7 +127,7 @@
     var content = mdeditor.getText();
     var title = document.title;
     if(title.trim() == ""){
-      Materialize.toast("错误：标题为空");
+      Materialize.toast("错误：标题为空", 3000);
       return ;
     }
     if(! mdeditor.CHANGED){
@@ -137,14 +137,14 @@
     $.post("", {title: title, content: content}, function(result){
       if(result.status == "ok"){
         mdeditor.CHANGED = false;
-        Materialize.toast("保存成功");
+        Materialize.toast("保存成功", 3000);
         if(result.redirect)
           window.location.href = result.redirect;
       } else {
-        Materialize.toast("错误：" + result.error);
+        Materialize.toast("错误：" + result.error, 3000);
       }
     }, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-      Materialize.toast("错误，代码：" + XMLHttpRequest.status);
+      Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
     });
   }
 
