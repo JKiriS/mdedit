@@ -687,7 +687,8 @@ $("#upload form").submit(function(event){
 function resize(){
 	var height = $(window).height() - $(".card ul.collection").offset().top - (parseInt( $('.card').css('marginBottom')) + parseInt( $('.row').css('marginBottom'))); 
 	var minHeight = 500;
-	$(".card ul.collection").css("height", Math.max(height, minHeight) + "px");
+	var maxHeight = 800;
+	$(".card ul.collection").css("height", Math.min(Math.max(height, minHeight)) + "px");
 }
 
 $(window).resize(function(event){
