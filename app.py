@@ -363,7 +363,8 @@ class MoveHandler(BaseHandler):
 
         res = dict(status='ok')
         try:
-            sources = map(lambda sid: ObjectId(sid), sources)
+            sources = map(lambda sid: ObjectId(sid), filter(
+		lambda a: a != target, sources))
             self.db.item.update_many({'_id': {'$in': sources}}, {
                                      '$set': {'parent': target}})
         except:
