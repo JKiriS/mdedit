@@ -60,6 +60,8 @@ function MDEditor(eid, pid) {
   this.editor.getSession().setMode("ace/mode/markdown");
   this.editor.setShowPrintMargin(false);
   this.editor.getSession().setUseWrapMode(true);
+  this.editor.setOption("scrollPastEnd", 0.5);
+  this.editor.renderer.setShowGutter(false);
   this.editor.renderer.setScrollMargin(0, 10, 0, 0);
 
   this.CHANGED = false;
