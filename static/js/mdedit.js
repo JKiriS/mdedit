@@ -85,8 +85,10 @@ function MDEditor(eid, pid) {
           break;
       }
       if(i > 0){
+        var container = $("#" + pid);
+        var scrollTo = $(lines[--i])
         $("#" + pid).animate({ 
-            scrollTop: $("#" + pid).scrollTop() + $(lines[--i]).offset().top
+            scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
         }, 300);
       }
     }, 100);
@@ -100,6 +102,15 @@ MDEditor.prototype.render = function() {
   this.equations = [];
 
   document.getElementById(this.pid).innerHTML = marked(md);
+
+  $("#{} pre".format(this.pid)).addClass("prettyprint linenums");
+  prettyPrint();
+  $("#{} pre".format(this.pid)).each(function(i, ei){
+    var line = parseInt($(ei).attr('line'));
+    $(ei).find('li').each(function(j, ej){
+      $(ej).attr('line', line+j);
+    });
+  });
 
   for(var i=0; i < this.equations.length; i++){
     var mid = this.equations[i];

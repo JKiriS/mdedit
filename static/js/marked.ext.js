@@ -839,18 +839,18 @@ Renderer.prototype.code = function(code, lang, escaped, line) {
   }
 
   if (!lang) {
-    return '<pre><code line="'
+    return '<pre line="'
       + line
-      + '">'
+      + '"><code>'
       + (escaped ? code : escape(code, true))
       + '\n</code></pre>';
   }
 
-  return '<pre><code class="'
+  return '<pre line="'
+    + line
+    +'"><code class="'
     + this.options.langPrefix
     + escape(lang, true)
-    + '" line="'
-    + line
     + '">'
     + (escaped ? code : escape(code, true))
     + '\n</code></pre>\n';
