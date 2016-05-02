@@ -78,7 +78,7 @@ function MDEditor(eid, pid) {
       clearTimeout(that.syncScrollDelay);
 
     that.syncScrollDelay = setTimeout(function(){
-      var editorLine = parseInt($(".ace_gutter-cell:first").html());
+      var editorLine = that.editor.getFirstVisibleRow();
       
       var lines = $("#" + pid).find("[line]");
       var i = 0;
