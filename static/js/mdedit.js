@@ -114,16 +114,16 @@ MDEditor.prototype.syncScroll = function() {
   this.syncScrollDelay = setTimeout(function(){
     var editorLine = that.editor.getFirstVisibleRow();
     
-    var lines = $("#" + pid).find("[line]");
+    var lines = $("#" + that.pid).find("[line]");
     var i = 0;
     for(; i < lines.length; i++){
       if(parseInt($(lines[i]).attr("line")) > editorLine)
         break;
     }
     if(i > 0){
-      var container = $("#" + pid);
+      var container = $("#" + that.pid);
       var scrollTo = $(lines[--i])
-      $("#" + pid).animate({ 
+      container.animate({ 
           scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
       }, 300);
     }
