@@ -70,32 +70,13 @@ function MDEditor(eid, pid) {
 
   this.editor.getSession().on('change', function(e) {
     that.render();
+    that.syncScroll();
     that.CHANGED = true;
   });
 
   this.editor.getSession().on('changeScrollTop', function(scroll) {
-    if(that.syncScrollDelay)
-      clearTimeout(that.syncScrollDelay);
-
-    that.syncScrollDelay = setTimeout(function(){
-      var editorLine = that.editor.getFirstVisibleRow();
-      
-      var lines = $("#" + pid).find("[line]");
-      var i = 0;
-      for(; i < lines.length; i++){
-        if(parseInt($(lines[i]).attr("line")) > editorLine)
-          break;
-      }
-      if(i > 0){
-        var container = $("#" + pid);
-        var scrollTo = $(lines[--i])
-        $("#" + pid).animate({ 
-            scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
-        }, 300);
-      }
-    }, 100);
+    that.syncScroll();
   });
-  
 }
 
 MDEditor.prototype.render = function() {
@@ -122,6 +103,32 @@ MDEditor.prototype.render = function() {
         ["Typeset", MathJax.Hub, ele]
       );
   }
+};
+
+MDEditor.prototype.syncScroll = function() {
+  if(this.syncScrollDelay)
+      clearTimeout(this.syncScrollDelay);
+
+  var that = this;
+
+  this.syncScrollDelay = setTimeout(function(){
+    var editorLine = that.editor.getFirstVisibleRow();
+    
+    var lines = $("#" + pid).find("[line]");
+    var i = 0;
+    for(; i < lines.length; i++){
+      if(parseInt($(lines[i]).attr("line")) > editorLine)
+        break;
+    }
+    if(i > 0){
+      var container = $("#" + pid);
+      var scrollTo = $(lines[--i])
+      $("#" + pid).animate({ 
+          scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
+      }, 300);
+    }
+  }, 100);
+  
 };
 
 MDEditor.prototype.addCommand = function(name, bindKey, callback, global) {
