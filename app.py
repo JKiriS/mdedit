@@ -37,8 +37,8 @@ class Session(object):
         if not self._s:
             self._s = {}
 
-    def get(self, key):
-        return self._s.get(key)
+    def get(self, key, default):
+        return self._s.get(key, default)
 
     def set(self, key, value):
         self._s[key] = value
@@ -99,7 +99,8 @@ def admin_authenticated(func):
 class IndexHandler(BaseHandler):
 
     def get(self):
-        self.render('index.html', parent=DOC_ROOT, ROOT=ROOT, BIN=BIN_ROOT)
+        parent = self.session.get('parent', DOC_ROOT)
+        self.render('index.html', parent=parent, ROOT=ROOT, BIN=BIN_ROOT)
 
 
 class DropboxTokenHandler(BaseHandler):
@@ -253,6 +254,7 @@ class ItemListHandler(BaseHandler):
 
     def post(self):
         parent = self.get_argument('parent', ROOT)
+        self.session.set('parent', parent)
 
         _items = self.db.item.find(
             {'parent': parent}, ['title', 'parent', 'type', 'url'])
