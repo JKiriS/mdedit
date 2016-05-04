@@ -112,7 +112,7 @@ MDEditor.prototype.syncScroll = function() {
   var that = this;
 
   this.syncScrollDelay = setTimeout(function(){
-    var editorLine = that.editor.getFirstVisibleRow();
+    var editorLine = that.editor.getFirstVisibleRow() + 1;
     
     var lines = $("#" + that.pid).find("[line]");
     var i = 0;
