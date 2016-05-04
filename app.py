@@ -37,7 +37,7 @@ class Session(object):
         if not self._s:
             self._s = {}
 
-    def get(self, key, default):
+    def get(self, key, default=None):
         return self._s.get(key, default)
 
     def set(self, key, value):
