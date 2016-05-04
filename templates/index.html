@@ -11,8 +11,8 @@
   <script type="text/javascript" src="/static/js/util.js"></script>
   <script type="text/javascript" src="/static/js/materialize.min.js"></script>
   <script type="text/javascript" src="/static/js/jquery-ui.js"></script>
-  <script type="text/javascript" src="/static/js/jquery.form.js"></script>
   <script type="text/javascript" src="/static/js/util.js"></script>
+  <script type="text/javascript" src="/static/js/dropbox.min.js"></script>
   <style type="text/css">
 
     body {
@@ -190,11 +190,11 @@
 	<!-- </div> -->
 
 	<div id="upload">
-		<form name="upload" method="POST" enctype="multipart/form-data" action="/upload" class="row">
+		<form name="upload" method="POST" class="row">
 		  <div class="file-field input-field col s8">
 		    <div class="btn">
 		      <span>文件</span>
-		      <input type="file" name="file" >
+		      <input type="file" name="file" id="files">
 		    </div>
 		    <div class="file-path-wrapper">
 		      <input class="file-path validate" type="text">
@@ -208,6 +208,10 @@
 
 </body>
 <script type="text/javascript">
+
+function RequestErrorHandler(XMLHttpRequest, textStatus, errorThrown) {
+	Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
+}
 
 function NavDirManager(eid) {
 	this.dirs = [];
@@ -320,9 +324,7 @@ NavDirManager.prototype.loadDirs = function(){
 	    } else {
 	        Materialize.toast("错误：" + result.error, 3000);
 	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-	});
+	}, 'json', RequestErrorHandler);
 }
 
 
@@ -391,9 +393,7 @@ ItemManager.prototype.moveItems = function(sources, target){
 	    } else {
 	        Materialize.toast("移动错误：" + result.error, 3000);
 	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-	});
+	}, 'json', RequestErrorHandler);
 }
 
 ItemManager.prototype.openItem = function(item) {
@@ -447,9 +447,7 @@ ItemManager.prototype.rename = function(item) {
 		    } else {
 		        Materialize.toast("重命名错误：" + result.error, 3000);
 		    }
-		}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		    Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-		});
+		}, 'json', RequestErrorHandler);
 	});
 }
 
@@ -477,9 +475,7 @@ ItemManager.prototype.loadItems = function() {
 	    } else {
 	        Materialize.toast("加载错误：" + result.error, 3000);
 	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-	});
+	}, 'json', RequestErrorHandler);
 }
 
 ItemManager.prototype.delItems = function(completely){
@@ -514,9 +510,7 @@ ItemManager.prototype.delItems = function(completely){
 	    } else {
 	        Materialize.toast("错误：" + result.error, 3000);
 	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-	});
+	}, 'json', RequestErrorHandler);
 }
 
 ItemManager.prototype.newDir = function(callback){
@@ -533,9 +527,7 @@ ItemManager.prototype.newDir = function(callback){
 	    } else {
 	        Materialize.toast("错误：" + result.error, 3000);
 	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-	});
+	}, 'json', RequestErrorHandler);
 }
 
 ItemManager.prototype.newDoc = function(callback){
@@ -551,9 +543,7 @@ ItemManager.prototype.newDoc = function(callback){
 	    } else {
 	        Materialize.toast("错误：" + result.error, 3000);
 	    }
-	}, 'json', function(XMLHttpRequest, textStatus, errorThrown) {
-		Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-	});
+	}, 'json', RequestErrorHandler);
 }
 
 ItemManager.prototype.upperDir = function() {
@@ -665,23 +655,63 @@ $(document).on("click", ".popover", function(event){
 	target.css("top",  $(this).offset().top + ($(this).height() + 10) + "px");
 });
 
+
+var DropboxClient = null;
+
+function upload(client){
+	var files = document.querySelector("#files").files
+
+	if(files.length){  
+
+        var file = files[0];  
+        var reader = new FileReader();  
+        reader.onload = function(){  
+       	    client.writeFile(file.name, this.result, function(error, stat) {
+				if (error) {
+					Materialize.toast("错误：" + error, 3000);
+				}
+
+				var path = stat.path;
+				var size = stat.size;
+				var name = file.name;
+
+				client.makeUrl(path, {downloadHack: true}, function(error, stat){
+					if(error) 
+						Materialize.toast("错误：" + error, 3000);
+
+					var url = stat.url;
+					$.post("/newfile", {parent: im.PARENT, _xsrf: getCookie("_xsrf"), name: name, url: url, size: size}, function(result){
+						    if(result.status == "ok"){
+						    	Materialize.toast("上传成功", 3000);
+							    im.loadItems();
+							} else {
+							    Materialize.toast("错误：" + result.error, 3000);
+							}
+					}, 'json', RequestErrorHandler);
+				});
+			});
+        };  
+        reader.readAsArrayBuffer(file); 
+    }  
+}
+
+
 $("#upload form").submit(function(event){
 	event.preventDefault();
-	$(this).ajaxSubmit({
-		dataType: 'json',
-		data: { parent: im.PARENT, _xsrf: getCookie("_xsrf") },
-		success: function(result){
-			if(result.status == "ok"){
-		    	Materialize.toast("上传成功", 3000);
-		    	im.loadItems();
-		    } else {
-		        Materialize.toast("错误：" + result.error, 3000);
-		    }
-		}, 
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-			Materialize.toast("错误，代码：" + XMLHttpRequest.status, 3000);
-		}
-	});
+
+	if(! DropboxClient){
+		$.post("/dropboxtoken", {}, function(result){
+		    if(result.status == "ok"){
+		    	var token = result.data;
+	    		DropboxClient = new Dropbox.Client({ token: token });
+	    		upload(DropboxClient);
+	    	} else {
+	        	Materialize.toast("获取Dropbox token错误", 3000);
+	    	}
+		}, 'json', RequestErrorHandler);
+	} else {
+		upload(DropboxClient);
+	}
 });
 
 function resize(){

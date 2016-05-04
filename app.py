@@ -102,35 +102,37 @@ class IndexHandler(BaseHandler):
         self.render('index.html', parent=DOC_ROOT, ROOT=ROOT, BIN=BIN_ROOT)
 
 
-class UploadHandler(BaseHandler):
+class DropboxTokenHandler(BaseHandler):
+
+    @user_authenticated
+    def post(self):
+        targets = self.get_arguments('targets[]')
+        completely = self.get_argument('completely', False)
+
+        res = dict(status='ok')
+        try:
+            u = self.db.user.find_one(
+                {'email': self.current_user['email']}, ('token', ))
+            res['data'] = u['token']
+        except:
+            res['status'] = 'error'
+            res['error'] = 'token not exist'
+
+        self.write(json.dumps(res))
+
+
+class NewFileHandler(BaseHandler):
 
     def post(self):
         res = {}
         try:
-            title = self.get_argument('file.name')
-            tmpPath = self.get_argument('file.path')
+            title = self.get_argument('name')
+            url = self.get_argument('url')
+            size = self.get_argument('size')
             parent = self.get_argument('parent', FILE_ROOT)
 
-            paths = ['file', ] + tmpPath.split('/')[-2:]
-            spath = '/'.join(paths)
-
-            _pointIndex = title.find('.')
-            if _pointIndex > 0:
-                spath += title[_pointIndex:]
-
-            os.symlink(tmpPath, '/home/jkiris/' + spath)
-            url = '/' + spath
-
-            fileInfo = dict(title=title,
-                            type='file',
-                            parent=parent,
-                            size=self.get_argument('file.size'),
-                            tmpPath=tmpPath,
-                            MD5=self.get_argument('file.md5'),
-                            contentType=self.get_argument('file.content_type'),
-                            url=url,
-                            create_time=datetime.datetime.now(),
-                            )
+            fileInfo = dict(title=title, type='file', parent=parent,
+                            size=size, url=url, create_time=datetime.datetime.now())
 
             self.db.item.insert_one(fileInfo)
             res['status'] = 'ok'
@@ -364,7 +366,7 @@ class MoveHandler(BaseHandler):
         res = dict(status='ok')
         try:
             sources = map(lambda sid: ObjectId(sid), filter(
-		lambda a: a != target, sources))
+                lambda a: a != target, sources))
             self.db.item.update_many({'_id': {'$in': sources}}, {
                                      '$set': {'parent': target}})
         except:
@@ -396,7 +398,8 @@ class Application(tornado.web.Application):
             (r"/login", LoginHandler),
             (r"/logout", LogoutHandler),
 
-            (r"/upload", UploadHandler),
+            (r"/newfile", NewFileHandler),
+            (r"/dropboxtoken", DropboxTokenHandler),
 
             (r"/a/(.*)", ArticleHandler),
 
