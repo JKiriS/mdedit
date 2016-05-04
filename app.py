@@ -248,6 +248,7 @@ class LogoutHandler(BaseHandler):
 
     def logout(self):
         self.session.pop('user')
+        self.session.pop('parent')
 
 
 class ItemListHandler(BaseHandler):
