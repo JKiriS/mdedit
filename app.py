@@ -161,7 +161,9 @@ class ArticleHandler(BaseHandler):
 
         if not article:
             raise tornado.web.HTTPError(404)
-        self.render('edit.html', article=article)
+
+        mode = self.get_argument('MODE', 'BOTH')
+        self.render('edit.html', article=article, mode=mode)
 
     @user_authenticated
     def post(self, aid):

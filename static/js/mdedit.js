@@ -66,7 +66,11 @@ function MDEditor(eid, pid) {
 
   this.CHANGED = false;
   this.syncScrollDelay = null;
-  this.PREVIEW = false;
+  
+  this.PREVIEW = 1;
+  this.EDIT = 2;
+  this.BOTH = 0;
+  this.MODE = this.BOTH;
 
   this.editor.getSession().on('change', function(e) {
     that.render();
@@ -80,6 +84,9 @@ function MDEditor(eid, pid) {
 }
 
 MDEditor.prototype.render = function() {
+  if(this.MODE == this.EDIT)
+    return ;
+
   var md = this.editor.getValue();
 
   this.equations = [];
@@ -106,6 +113,9 @@ MDEditor.prototype.render = function() {
 };
 
 MDEditor.prototype.syncScroll = function() {
+  if(this.MODE != this.BOTH)
+    return ;
+
   if(this.syncScrollDelay)
       clearTimeout(this.syncScrollDelay);
 
@@ -147,63 +157,31 @@ MDEditor.prototype.addCommand = function(name, bindKey, callback, global) {
         callback(event);
       }
     });
-}
+};
 
 MDEditor.prototype.getText = function() {
   return this.editor.getValue();
-}
+};
 
-function resize(){
+MDEditor.prototype.resize = function(){
+    this._resize();
+    this.editor.resize();
+    this.render();
+};
 
-  var bodyWidth = $(window).width();
-  var bodyHeight = $(window).height();
-
-  if(! mdeditor.PREVIEW){
-    mainWidth = Math.min(Math.max(bodyWidth * 0.95, 900), bodyWidth - 20);
-    mainHeight = bodyHeight - 90;
-    $("div.main").outerWidth(mainWidth);
-    $("div.main").css("left", (bodyWidth - mainWidth) / 2 + "px");
-    $("div.main").css("top", "70px");
-    $("div.main").outerHeight( mainHeight );
-    $("div.main").css("margin-bottom", "0px");
-
-    $("#editor").show();
-    $("#editor").outerHeight( mainHeight );
-    $("#editor").outerWidth( mainWidth * 0.5 );
-
-    $("#preview").outerWidth( mainWidth * 0.5 );
-    $("#preview").outerHeight( mainHeight );
-    
-    $("#preview").removeClass("preview");
-    $("#preview").css("margin-left", "0px");
-  } else {
-    mainWidth = Math.min(Math.max(bodyWidth * 0.6, 800), bodyWidth - 20);
-    mainHeight = bodyHeight - 90;
-    $("div.main").outerWidth(mainWidth);
-    $("div.main").css("left", (bodyWidth - mainWidth) / 2 + "px");
-    $("div.main").css("top", "70px");
-    $("div.main").css("height", "");
-    $("div.main").css("margin-bottom", "20px");
-
-    $("#editor").hide();
-    $("#preview").addClass("preview");
-
-    $("#preview").css("height", "100%");
-    $("#preview").outerWidth( mainWidth );
-  }
-  
-}
+MDEditor.prototype._resize = function(){
+  ;
+};
 
 var mdeditor = new MDEditor("editor", "preview");
-resize();
-mdeditor.editor.resize();
+
 
 $(document).ready(function(){
+  mdeditor.resize();
   mdeditor.render();
 });
 
 //
 $(window).resize(function(event){
-  resize();
-  mdeditor.editor.resize();
+  mdeditor.resize();
 });

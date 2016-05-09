@@ -139,6 +139,7 @@
 
   {% module xsrf_form_html() %}
 
+  {% if mode != 'EDIT' %}
 	<div class="navbar-fixed">
     <nav>
       <div class="nav-wrapper">
@@ -156,6 +157,7 @@
       </div>
     </nav>
   </div>
+  {% end %}
 
   <ul id="dropdown-account" class="dropdown-content" style="text-align: center;">
     {% if current_user %}
@@ -172,7 +174,7 @@
       <div id="preview" class="non-preview"></div>
   </div>
 
-
+  {% if mode != 'EDIT' %}
   <div class="fixed-action-btn click-to-toggle" style="bottom: 45px; right: 45px;">
     <a class="btn-floating btn-large red">
       <i class="large mdi mdi-menu"></i>
@@ -184,11 +186,97 @@
       <li><a class="btn-floating blue" onclick="save()"><i class="mdi mdi-content-save"></i></a></li>
     </ul>
   </div>
+  {% else %}
+  <div class="fixed-action-btn" style="bottom: 45px; right: 45px;">
+    <a class="btn-floating btn-large red" onclick="save()">
+      <i class="large mdi mdi-content-save"></i>
+    </a>
+  </div>
+  {% end %}
 
 </body>
 <script src="/static/js/util.js" type="text/javascript"></script>
 <script src="/static/js/mdedit.js" type="text/javascript"></script>
 <script type="text/javascript">
+
+  {% if mode != 'EDIT' %}
+
+    {% if mode == 'PREVIEW' %}
+    mdeditor.MODE == mdeditor.PREVIEW;
+    {% else %}
+    mdeditor.MODE == mdeditor.BOTH;
+    {% end %}
+
+    mdeditor._resize = function(){
+
+      var bodyWidth = $(window).width();
+      var bodyHeight = $(window).height();
+
+      if(this.MODE == this.BOTH){
+        mainWidth = Math.min(Math.max(bodyWidth * 0.95, 900), bodyWidth - 20);
+        mainHeight = bodyHeight - 90;
+        $("div.main").outerWidth(mainWidth);
+        $("div.main").css("left", (bodyWidth - mainWidth) / 2 + "px");
+        $("div.main").css("top", "70px");
+        $("div.main").outerHeight( mainHeight );
+        $("div.main").css("margin-bottom", "0px");
+
+        $("#editor").show();
+        $("#editor").outerHeight( mainHeight );
+        $("#editor").outerWidth( mainWidth * 0.5 );
+
+        $("#preview").show();
+        $("#preview").outerWidth( mainWidth * 0.5 );
+        $("#preview").outerHeight( mainHeight );
+        
+        $("#preview").removeClass("preview");
+        $("#preview").css("margin-left", "0px");
+      } else if(this.MODE == this.PREVIEW){
+        mainWidth = Math.min(Math.max(bodyWidth * 0.6, 800), bodyWidth - 20);
+        mainHeight = bodyHeight - 90;
+        $("div.main").outerWidth(mainWidth);
+        $("div.main").css("left", (bodyWidth - mainWidth) / 2 + "px");
+        $("div.main").css("top", "70px");
+        $("div.main").outerHeight( mainHeight );
+        $("div.main").css("margin-bottom", "0px");
+
+        $("#editor").hide();
+        $("#preview").addClass("preview");
+
+        $("#preview").show();
+        $("#preview").css("height", "100%");
+        $("#preview").outerWidth( mainWidth );
+      }
+      
+    };
+
+    mdeditor.resize();
+  {% else %}
+    mdeditor.MODE = mdeditor.EDIT;
+
+    mdeditor._resize = function(){
+      var bodyWidth = $(window).width();
+      var bodyHeight = $(window).height();
+
+      if(this.MODE == this.EDIT){
+        mainWidth = bodyWidth - 20;
+        mainHeight = bodyHeight;
+        $("div.main").outerWidth(mainWidth);
+        $("div.main").css("left", (bodyWidth - mainWidth) / 2 + "px");
+        $("div.main").outerHeight( mainHeight );
+        $("div.main").css("margin-bottom", "0px");
+
+        $("#preview").hide();
+        $("#preview").removeClass("preview");
+
+        $("#editor").show();
+        $("#editor").outerHeight( mainHeight );
+        $("#editor").outerWidth( mainWidth );
+      }
+    }
+
+    mdeditor.resize();
+  {% end %}
   
   function save(){
     var content = mdeditor.getText();
@@ -204,7 +292,6 @@
     $.post("", {title: title, content: content}, function(result){
       if(result.status == "ok"){
         mdeditor.CHANGED = false;
-        Materialize.toast("保存成功", 3000);
         if(result.redirect)
           window.location.href = result.redirect;
       } else {
@@ -223,6 +310,9 @@
     mdeditor.CHANGED = true;
   });
 
+  
+
+  {% if mode != 'EDIT' %}
   function goToIndex(){
     save();
     window.location.href = "/";
@@ -232,17 +322,33 @@
     save();
     window.location.href = "/a/";
   }
+  function switchPreview(){
+    if(mdeditor.MODE == mdeditor.BOTH){
+      mdeditor.MODE = mdeditor.PREVIEW;
+    } else {
+      mdeditor.MODE = mdeditor.BOTH;
+    }
 
-  function preview(){
-    mdeditor.PREVIEW = !mdeditor.PREVIEW;
-    resize();
+    mdeditor.resize();
   }
+  function switchEdit(){
+    if(mdeditor.MODE == mdeditor.EDIT)
+      return ;
+
+    window.open('{{ request.path }}?MODE=EDIT', 'edit', 'channelmode=1,location=0,menubar=0,width=850,height=500,left=200,top=100,alwaysRaised=1');
+    window.close();
+  }
+
+  mdeditor.addCommand('switchEdit', 'E', switchEdit, true);
+  mdeditor.addCommand('switchPreview', 'P', switchPreview, true);
+  mdeditor.addCommand('open', 'O', newArticle, true);
+  mdeditor.addCommand('index', 'I', goToIndex, true);
+  {% else %}
+  
+  {% end %}
 
   // hot key
   mdeditor.addCommand('save', 'S', save, true);
-  mdeditor.addCommand('open', 'O', newArticle, true);
-  mdeditor.addCommand('preview', 'P', preview, true);
-  mdeditor.addCommand('index', 'I', goToIndex, true);
 
 </script>
 </html>
